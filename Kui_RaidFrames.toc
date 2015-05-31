@@ -4,8 +4,9 @@
 ## OptionalDeps: oUF, oUF_Smooth
 ## X-oUF: oUFKuiEmbed
 
-ouf\oUF.xml
+ouf/oUF.xml
 
+elements/absorb.lua
 elements/auras.lua
 elements/dispel.lua
 

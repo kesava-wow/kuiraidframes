@@ -5,7 +5,6 @@
 -- All rights reserved.
 --]]
 local ouf = oUF or oUFKuiEmbed
-local _
 
 local class = select(2,UnitClass('player'))
 local types = {

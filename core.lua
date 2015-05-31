@@ -1,9 +1,13 @@
 
 local folder,ns=...
-local ouf=oUF or oUFKuiEmbed
-
-local addon = {}
+local ouf = oUF or oUFKuiEmbed
 local kui = LibStub('Kui-1.0')
+
+KuiRaidFrames = {}
+local addon = KuiRaidFrames
+
+local texture = 'Interface\\AddOns\\Kui_Media\\t\\bar'
+local width,height = 55,35
 
 local INIT_MTT = 1
 
@@ -13,6 +17,15 @@ ouf.Tags.Methods['kuiraid:name'] = function(u,r)
     return kui.utf8sub(UnitName(u or r), 0, 6)
 end
 ouf.Tags.Events['kuiraid:name'] = 'UNIT_NAME_UPDATE'
+
+ouf.Tags.Methods['kuiraid:status'] = function(u,r)
+    return (
+        ouf.Tags.Methods['offline'](u) or
+        ouf.Tags.Methods['dead'](u) or
+        ouf.Tags.Methods['missinghp'](u)
+    )
+end
+ouf.Tags.Events['kuiraid:status'] = 'UNIT_MAXHEALTH UNIT_HEALTH_FREQUENT UNIT_CONNECTION'
 -- #############################################################################
 -- helper functions ############################################################
 function addon.CreateFontString(parent, flags)
@@ -25,6 +38,8 @@ function addon.CreateFontString(parent, flags)
     local fs = parent:CreateFontString(nil,'OVERLAY')
     fs:SetFont(unpack(flags))
     fs:SetWordWrap(false)
+    fs:SetShadowOffset(1,-1)
+    fs:SetShadowColor(0,0,0,.5)
 
     fs.SetFlag = function(self,flag,val)
         local flags = { self:GetFont() }
@@ -37,15 +52,15 @@ end
 function addon.CreateStatusBar(parent, parent_frame, invert)
     parent_frame = parent_frame or parent
 
-    local texture = 'Interface\\AddOns\\Kui_Media\\t\\bar'
-
     local sb = CreateFrame('StatusBar', nil, parent_frame)
     sb:SetStatusBarTexture(texture)
     sb:SetPoint('TOPLEFT', 1, -1)
     sb:SetPoint('BOTTOMRIGHT', -1, 1)
 
     if invert then
-        sb.invert_fill = sb:CreateTexture(nil, 'BORDER')
+        sb:GetStatusBarTexture():SetDrawLayer('BACKGROUND',1)
+
+        sb.invert_fill = sb:CreateTexture(nil, 'BACKGROUND', nil, 0)
         sb.invert_fill:SetTexture(texture)
         sb.invert_fill:SetAllPoints(sb)
 
@@ -98,7 +113,7 @@ end
 
 UIDropDownMenu_Initialize(frame_menu, frame_menu_init, 'MENU')
 -- #############################################################################
-
+-- spawn functions #############################################################
 function addon:SpawnHeader(name, init_func_spec)
     local init_func
 
@@ -124,7 +139,7 @@ function addon:SpawnHeader(name, init_func_spec)
         'groupingOrder', 'TANK,HEALER,DAMAGER,NONE',
         'sortMethod', 'INDEX',
         'sortDir', 'ASC',
-        'oUF-initialConfigFunction', (init_func):format(55,35),
+        'oUF-initialConfigFunction', (init_func):format(width,height),
         'point', 'TOP',
         'yOffset', -1,
         'xOffset', 1,
@@ -160,7 +175,8 @@ function addon:SpawnOthers()
 
     header:SetPoint('TOPLEFT', oUF_Kui_Raid_Tanks, 'TOPRIGHT', 1, 0)
 end
-
+-- #############################################################################
+-- layout function #############################################################
 local function RaidLayout(self, unit)
     self.menu = frame_menu_init
     self:RegisterForClicks('AnyUp')
@@ -176,11 +192,12 @@ local function RaidLayout(self, unit)
     self.Health.colorClass = true
     self.Health.Smooth = true
 
-    self.name = addon.CreateFontString(self.Health)
-    self:Tag(self.name, '[kuiraid:name]')
-    self.name:SetFlag(2,9)
-
-    self.name:SetPoint('CENTER')
+    self.KuiAbsorb = {
+        texture = texture,
+        drawLayer = { 'BACKGROUND', 4 },
+        colour = { .3, .7, 1 },
+        alpha = .3
+    }
 
     self.Range = {
         insideAlpha = 1,
@@ -189,16 +206,83 @@ local function RaidLayout(self, unit)
             if state == 'outside' then
                 self:SetAlpha(self.Range.outsideAlpha)
                 self.name:SetTextColor(.5,.5,.5,.7)
+                self.status:SetTextColor(.5,.5,.5,.7)
             else
                 self:SetAlpha(self.Range.insideAlpha)
                 self.name:SetTextColor(1,1,1,1)
+                self.status:SetTextColor(1,1,1,.8)
             end
         end
     }
+
+    do
+        local width = 55 - 2
+
+        local myBar = CreateFrame('StatusBar', nil, self.Health)
+        myBar:SetStatusBarTexture(texture)
+        myBar:GetStatusBarTexture():SetDrawLayer('BACKGROUND',2)
+        myBar:SetPoint('TOP')
+        myBar:SetPoint('BOTTOM')
+        myBar:SetPoint('LEFT', self.Health:GetStatusBarTexture(), 'RIGHT')
+        myBar:SetStatusBarColor(0,1,.5,.5)
+        myBar:SetWidth(width)
+
+        local otherBar = CreateFrame('StatusBar', nil, self.Health)
+        otherBar:SetStatusBarTexture(texture)
+        otherBar:GetStatusBarTexture():SetDrawLayer('BACKGROUND',3)
+        otherBar:SetPoint('TOP')
+        otherBar:SetPoint('BOTTOM')
+        otherBar:SetPoint('LEFT', self.Health:GetStatusBarTexture(), 'RIGHT')
+        otherBar:SetStatusBarColor(0,1,0,.5)
+        otherBar:SetWidth(width)
+
+        local healAbsorbBar = CreateFrame('StatusBar', nil, self.Health)
+        healAbsorbBar:SetStatusBarTexture(texture)
+        healAbsorbBar:GetStatusBarTexture():SetDrawLayer('BACKGROUND',5)
+        healAbsorbBar:SetPoint('TOP')
+        healAbsorbBar:SetPoint('BOTTOM')
+        healAbsorbBar:SetPoint('LEFT', self.Health:GetStatusBarTexture(), 'RIGHT')
+        healAbsorbBar:SetStatusBarColor(0,0,0,.5)
+        healAbsorbBar:SetWidth(width)
+
+        self.HealPrediction = {
+            myBar = myBar,
+            otherBar = otherBar,
+            healAbsorbBar = healAbsorbBar,
+            maxOverflow = 1.05,
+            frequentUpdates = true
+        }
+    end
+
+    -- text/high frame overlay
+    self.overlay = CreateFrame('Frame',nil,self.Health)
+    self.overlay:SetAllPoints(self.Health)
+
+    self.name = addon.CreateFontString(self.overlay)
+    self.name:SetPoint('CENTER')
+    self.name:SetFlag(2,9)
+    self:Tag(self.name, '[kuiraid:name]')
+
+    self.status = addon.CreateFontString(self.overlay)
+    self.status:SetFlag(2,9)
+    self.status:SetAlpha(.8)
+    self:Tag(self.status, '[kuiraid:status]')
+
+    self.status.orig_UpdateTag = self.status.UpdateTag
+    self.status.UpdateTag = function(self)
+        self.orig_UpdateTag(self)
+
+        if self:GetText() then
+            self.parent.name:SetPoint('CENTER', 0, 6)
+            self:SetPoint('CENTER', 0, -6)
+        else
+            self.parent.name:SetPoint('CENTER')
+        end
+    end
 end
-
+-- #############################################################################
+-- register with ouf ###########################################################
 ouf:RegisterStyle('KuiRaid', RaidLayout)
-
 ouf:Factory(function(self)
     self:SetActiveStyle('KuiRaid')
     addon:SpawnTanks()
