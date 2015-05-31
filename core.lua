@@ -1,6 +1,6 @@
 
 local folder,ns=...
-local ouf=oUF
+local ouf=oUF or oUFKuiEmbed
 
 local addon = {}
 local kui = LibStub('Kui-1.0')
@@ -59,6 +59,45 @@ function addon.CreateStatusBar(parent, parent_frame, invert)
     return sb
 end
 -- #############################################################################
+-- dropdown menu ###############################################################
+local frame_menu = CreateFrame('Frame', folder..'UnitMenu', UIParent, 'UIDropDownMenuTemplate')
+local function frame_menu_func(frame)
+    frame_menu:SetParent(frame)
+    return ToggleDropDownMenu(1,nil,frame_menu,'cursor',-3,0)
+end
+local function frame_menu_init(frame)
+    local menu,name,id
+    local unit = frame:GetParent().unit
+
+    if not unit then return end
+
+    if UnitIsUnit(unit,'player') then
+        menu='frame'
+    elseif UnitIsUnit(unit,'vehicle') then
+        menu='VEHICLE'
+    elseif UnitIsUnit(unit,'pet') then
+        menu='PET'
+    elseif UnitIsPlayer(unit) then
+        id = UnitInRaid(unit)
+
+        if id then
+            menu = 'RAID_PLAYER'
+        elseif UnitInParty(unit) then
+            menu = 'PARTY'
+        else
+            menu = 'PLAYER'
+        end
+    else
+        menu = 'TARGET'
+    end
+
+    if menu then
+        UnitPopup_ShowMenu(frame, menu, unit, name, id)
+    end
+end
+
+UIDropDownMenu_Initialize(frame_menu, frame_menu_init, 'MENU')
+-- #############################################################################
 
 function addon:SpawnHeader(name, init_func_spec)
     local init_func
@@ -76,7 +115,8 @@ function addon:SpawnHeader(name, init_func_spec)
         ]]
     end
 
-    return ouf:SpawnHeader(name, nil, 'raid,party',
+    return ouf:SpawnHeader(name, nil, 'solo,raid,party',
+        'showSolo', true,
         'showPlayer', true,
         'showParty', true,
         'showRaid', true,
@@ -122,12 +162,17 @@ function addon:SpawnOthers()
 end
 
 local function RaidLayout(self, unit)
+    self.menu = frame_menu_init
+    self:RegisterForClicks('AnyUp')
+
     self:SetBackdrop({ bgFile = kui.m.t.solid })
     self:SetBackdropColor(0,0,0,.9)
 
     self.Health = addon.CreateStatusBar(self,nil,true)
     self.Health.frequentUpdates = true
+    self.Health.colorDisconnected = true
     self.Health.colorReaction = true
+    self.Health.colorTapping = true
     self.Health.colorClass = true
     self.Health.Smooth = true
 
@@ -136,6 +181,20 @@ local function RaidLayout(self, unit)
     self.name:SetFlag(2,9)
 
     self.name:SetPoint('CENTER')
+
+    self.Range = {
+        insideAlpha = 1,
+        outsideAlpha = .5,
+        Override = function(self,state)
+            if state == 'outside' then
+                self:SetAlpha(self.Range.outsideAlpha)
+                self.name:SetTextColor(.5,.5,.5,.7)
+            else
+                self:SetAlpha(self.Range.insideAlpha)
+                self.name:SetTextColor(1,1,1,1)
+            end
+        end
+    }
 end
 
 ouf:RegisterStyle('KuiRaid', RaidLayout)

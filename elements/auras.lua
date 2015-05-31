@@ -1,0 +1,13 @@
+--[[
+--
+--in-game raid debuff code @ compactunitframe.lua
+--
+--CompactUnitFrame_UtilIsBossAura
+--CompactUnitFrame_UtilIsPriorityDebuff
+--CompactUnitFrame_UtilShouldDisplay[Deb|B]uff
+--
+-- main idea is: embiggen auras with isBossAura flag (from UnitAura)
+-- show forbearance (25771) for paladins
+-- show weakened soul (6788) for priests
+--
+--]]

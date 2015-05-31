@@ -2,8 +2,12 @@
 ## Author: Kesava
 ## Title: Kui |cff9966ffRaidFrames|r
 ## OptionalDeps: oUF, oUF_Smooth
+## X-oUF: oUFKuiEmbed
 
-ouf/oUF.xml
+ouf\oUF.xml
+
+elements/auras.lua
+elements/dispel.lua
 
 core.lua
 
