@@ -17,30 +17,49 @@ function whitelist.WhitelistChanged()
 end
 
 local button_UpdateCooldown = function(self,duration,expiration)
-    self.cd:SetCooldown(expiration - duration, duration)
+    if expiration > 0 then
+        self.expiration = expiration
+        self.cd:SetCooldown(expiration - duration, duration)
+    else
+        self.expiration = nil
+    end
 end
 local button_SetTexture = function(self,texture)
     self.icon:SetTexture(texture)
 end
-local button_OnHide = function(self)
-    self.duration = nil
-    self.expiration = nil
-    self.spellid = nil
-end
 
 local function ArrangeButtons(self)
+    -- sort by time remaining
+    table.sort(self.KuiAuras.buttons, function(a,b)
+        if a.expiration and b.expiration then
+            return a.expiration < b.expiration
+        else
+            return a.expiration and not b.expiration
+        end
+    end)
+
     local prev
+    self.KuiAuras.visible = 0
+
+    -- set positions and show in-use buttons
     for spellid,button in pairs(self.KuiAuras.buttons) do
-        if button:IsShown() then
-            button:ClearAllPoints()
+        if button.spellid then
+            if self.KuiAuras.visible < 2 then
+                self.KuiAuras.visible = self.KuiAuras.visible + 1
+                button:ClearAllPoints()
 
-            if not prev then
-                button:SetPoint('TOPLEFT', 1, -1)
+                if not prev then
+                    button:SetPoint('TOPLEFT', 1, -1)
+                else
+                    button:SetPoint('LEFT', prev, 'RIGHT', 1, 0)
+                end
+
+                prev = button
+                button:Show()
             else
-                button:SetPoint('LEFT', prev, 'RIGHT', 1, 0)
+                -- hide overflow
+                button:Hide()
             end
-
-            prev = button
         end
     end
 end
@@ -77,7 +96,6 @@ local function GetButton(self,spellid)
 
     button.UpdateCooldown = button_UpdateCooldown
     button.SetTexture = button_SetTexture
-    button:SetScript('OnHide', button_OnHide)
 
     tinsert(self.KuiAuras.buttons, button)
     return button
@@ -90,15 +108,14 @@ local function DisplayButton(self,name,icon,spellid,count,duration,expiration)
     button.used = true
     button.spellid = spellid
 
-    button:Show()
     button:UpdateCooldown(duration,expiration)
 
     self.KuiAuras.spellIds[spellid] = button
 end
 
 local function GetAuras(self,unit)
-    -- show own cast buffs in whitelist
     if UnitCanAssist('player',unit) then
+        -- show own cast buffs in whitelist
         for i=1,40 do
             local name,_,icon,count,_,duration,expiration,_,_,_,spellid,_,isBoss,isPlayer = UnitAura(unit, i, 'HELPFUL PLAYER')
             if not name then break end
@@ -136,10 +153,15 @@ local function update(self,event,unit)
 
     GetAuras(self,unit)
 
-    -- hide buttons which weren't used this update
+    -- unregister and hide buttons which weren't used this update
     for _,button in pairs(self.KuiAuras.buttons) do
         if button:IsShown() and not button.used then
             self.KuiAuras.spellIds[button.spellid] = nil
+
+            button.duration = nil
+            button.expiration = nil
+            button.spellid = nil
+
             button:Hide()
         end
 
