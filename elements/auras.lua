@@ -102,7 +102,9 @@ local function GetAuras(self,unit)
         for i=1,40 do
             local name,_,icon,count,_,duration,expiration,_,_,_,spellid,_,isBoss,isPlayer = UnitAura(unit, i, 'HELPFUL PLAYER')
             if not name then break end
-            if whitelist.list[spellid] then
+            if  whitelist.list[spellid] and
+                ((duration and duration <= 600) or not duration)
+            then
                 DisplayButton(self,name,icon,spellid,count,duration,expiration)
             end
         end
