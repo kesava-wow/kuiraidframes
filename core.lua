@@ -19,10 +19,13 @@ end
 ouf.Tags.Events['kuiraid:name'] = 'UNIT_NAME_UPDATE'
 
 ouf.Tags.Methods['kuiraid:status'] = function(u,r)
+    local hp = ouf.Tags.Methods['missinghp'](u)
+    hp = hp and '-'..kui.num(hp)
+
     return (
         ouf.Tags.Methods['offline'](u) or
         ouf.Tags.Methods['dead'](u) or
-        ouf.Tags.Methods['missinghp'](u)
+        hp
     )
 end
 ouf.Tags.Events['kuiraid:status'] = 'UNIT_MAXHEALTH UNIT_HEALTH_FREQUENT UNIT_CONNECTION'

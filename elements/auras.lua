@@ -16,6 +16,18 @@ function whitelist.WhitelistChanged()
     whitelist.list = spelllist.GetImportantSpells(select(2, UnitClass('player')))
 end
 
+local button_UpdateCooldown = function(self,duration,expiration)
+    self.cd:SetCooldown(expiration - duration, duration)
+end
+local button_SetTexture = function(self,texture)
+    self.icon:SetTexture(texture)
+end
+local button_OnHide = function(self)
+    self.duration = nil
+    self.expiration = nil
+    self.spellid = nil
+end
+
 local function ArrangeButtons(self)
     local prev
     for spellid,button in pairs(self.KuiAuras.buttons) do
@@ -23,9 +35,9 @@ local function ArrangeButtons(self)
             button:ClearAllPoints()
 
             if not prev then
-                button:SetPoint('TOPRIGHT', -1, -1)
+                button:SetPoint('TOPLEFT', 1, -1)
             else
-                button:SetPoint('RIGHT', prev, 'LEFT', -1, 0)
+                button:SetPoint('LEFT', prev, 'RIGHT', 1, 0)
             end
 
             prev = button
@@ -47,22 +59,39 @@ local function GetButton(self,spellid)
     end
 
     -- create new button
-    local button = self.Health:CreateTexture(nil, 'BACKGROUND', nil, 7)
-    button:SetTexCoord(.1,.9,.1,.9)
+    local button = CreateFrame('Frame',nil,self.Health)
     button:SetSize(8,8)
 
-    tinsert(self.KuiAuras.buttons, button)
+    local icon = button:CreateTexture(nil, 'ARTWORK')
+    icon:SetTexCoord(.1,.9,.1,.9)
+    icon:SetAllPoints(button)
 
+    local cd = CreateFrame('Cooldown', nil, button, 'CooldownFrameTemplate')
+    cd:SetAllPoints(button)
+    cd:SetDrawEdge(false)
+    cd:SetReverse(true)
+    cd:SetHideCountdownNumbers(true)
+
+    button.icon = icon
+    button.cd = cd
+
+    button.UpdateCooldown = button_UpdateCooldown
+    button.SetTexture = button_SetTexture
+    button:SetScript('OnHide', button_OnHide)
+
+    tinsert(self.KuiAuras.buttons, button)
     return button
 end
 
-local function DisplayButton(self,name,icon,spellid)
+local function DisplayButton(self,name,icon,spellid,count,duration,expiration)
     local button = GetButton(self,spellid)
-    button:SetTexture(icon)
-    button:Show()
 
-    button.spellid = spellid
+    button:SetTexture(icon)
     button.used = true
+    button.spellid = spellid
+
+    button:Show()
+    button:UpdateCooldown(duration,expiration)
 
     self.KuiAuras.spellIds[spellid] = button
 end
@@ -71,32 +100,33 @@ local function GetAuras(self,unit)
     -- show own cast buffs in whitelist
     if UnitCanAssist('player',unit) then
         for i=1,40 do
-            local name,_,icon,_,_,_,_,_,_,_,spellid,_,isBoss,isPlayer = UnitAura(unit, i, 'HELPFUL PLAYER')
+            local name,_,icon,count,_,duration,expiration,_,_,_,spellid,_,isBoss,isPlayer = UnitAura(unit, i, 'HELPFUL PLAYER')
             if not name then break end
             if whitelist.list[spellid] then
-                DisplayButton(self,name,icon,spellid)
+                DisplayButton(self,name,icon,spellid,count,duration,expiration)
             end
         end
-    end
 
---[[
         -- show dispellable debuffs
         for i=1,40 do
             local name,_,icon,_,_,_,_,_,_,_,spellid,_,isBoss,isPlayer = UnitAura(unit, i, 'HARMFUL RAID')
             if not name then break end
-            print('dispel: '..name)
+            if isBoss then
+                print('boss dispel: '..name)
+            else
+                print('dispel: '..name)
+            end
         end
-    end
 
-    -- show isBossAura debuffs
-    for i=1,40 do
-        local name,_,icon,_,_,_,_,_,_,_,spellid,_,isBoss,isPlayer = UnitAura(unit, i, 'HARMFUL')
-        if not name then break end
-        if isBoss then
-            print('boss aura: '..name)
+        -- show boss debuffs
+        for i=1,40 do
+            local name,_,icon,_,_,_,_,_,_,_,spellid,_,isBoss,isPlayer = UnitAura(unit, i, 'HARMFUL')
+            if not name then break end
+            if isBoss then
+                print('boss aura: '..name)
+            end
         end
     end
-]]
 end
 
 local function update(self,event,unit)
@@ -106,11 +136,12 @@ local function update(self,event,unit)
 
     -- hide buttons which weren't used this update
     for _,button in pairs(self.KuiAuras.buttons) do
-        if not button.used then
+        if button:IsShown() and not button.used then
             self.KuiAuras.spellIds[button.spellid] = nil
             button:Hide()
         end
 
+        -- set used to nil until they are recalled next update
         button.used = nil
     end
 
@@ -121,6 +152,23 @@ local function enable(self,unit)
 
     self.KuiAuras.buttons = {}
     self.KuiAuras.spellIds = {}
+
+    --[[
+    self.KuiAuras.frames = {
+        buffs = {},
+        debuffs = {}
+    }
+
+    CreateAuraFrame(
+        self.KuiAuras,
+        'buffs',
+        'HELPFUL PLAYER',
+        'TOPLEFT'
+    )
+
+    -- also have callback for checking spell whitelist
+
+    ]]
 
     self:RegisterEvent('UNIT_AURA', update)
 end
