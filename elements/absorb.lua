@@ -41,7 +41,7 @@ local function enable(self,unit)
     local ka = self.KuiAbsorb
 
     ka.bar = CreateFrame('StatusBar', nil, self.Health)
-    ka.bar:SetStatusBarTexture('Interface\\AddOns\\Kui_RaidFrames\\media\\stippled-bar')
+    ka.bar:SetStatusBarTexture(ka.texture)
     ka.bar:GetStatusBarTexture():SetDrawLayer(unpack(ka.drawLayer))
     ka.bar:SetStatusBarColor(unpack(ka.colour))
     ka.bar:SetAlpha(ka.alpha)

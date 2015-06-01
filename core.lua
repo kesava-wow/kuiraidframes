@@ -193,22 +193,24 @@ local function RaidLayout(self, unit)
     self.Health.Smooth = true
 
     self.KuiAbsorb = {
-        texture = texture,
+        texture = 'Interface\\AddOns\\Kui_RaidFrames\\media\\stippled-bar',
         drawLayer = { 'BACKGROUND', 4 },
         colour = { .3, .7, 1 },
         alpha = .3
     }
+
+    self.KuiAuras = {}
 
     self.Range = {
         insideAlpha = 1,
         outsideAlpha = .5,
         Override = function(self,state)
             if state == 'outside' then
-                self:SetAlpha(self.Range.outsideAlpha)
+                self.Health:SetAlpha(self.Range.outsideAlpha)
                 self.name:SetTextColor(.5,.5,.5,.7)
                 self.status:SetTextColor(.5,.5,.5,.7)
             else
-                self:SetAlpha(self.Range.insideAlpha)
+                self.Health:SetAlpha(self.Range.insideAlpha)
                 self.name:SetTextColor(1,1,1,1)
                 self.status:SetTextColor(1,1,1,.8)
             end
