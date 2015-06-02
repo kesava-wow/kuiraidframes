@@ -14,6 +14,8 @@ function whitelist.WhitelistChanged()
     whitelist.list = spelllist.GetImportantSpells(select(2, UnitClass('player')))
 end
 
+-- #############################################################################
+-- button functions ############################################################
 local button_UpdateCooldown = function(self,duration,expiration)
     if expiration > 0 then
         self.expiration = expiration
@@ -25,57 +27,8 @@ end
 local button_SetTexture = function(self,texture)
     self.icon:SetTexture(texture)
 end
-
---[[
-local function IsPriorityDebuff(spellid)
-    -- forbearance or weakened soul
-    return (spellid == 25771 or spellid == 6788)
-end
-local function GetAuras(self,unit)
-    if UnitCanAssist('player',unit) then
-        -- show own cast buffs in whitelist
-        for i=1,40 do
-            local name,_,icon,count,_,duration,expiration,_,_,_,spellid,_,isBoss,isPlayer = UnitAura(unit, i, 'HELPFUL PLAYER')
-            if not name then break end
-            if  whitelist.list[spellid] and
-                ((duration and duration <= 600) or not duration)
-            then
-                DisplayButton(self,name,icon,spellid,count,duration,expiration)
-            end
-        end
-
-        -- show dispellable debuffs
-        for i=1,40 do
-            local name,_,icon,_,_,_,_,_,_,_,spellid,_,isBoss,isPlayer = UnitAura(unit, i, 'HARMFUL RAID')
-            if not name then break end
-            if isBoss then
-                print('boss dispel: '..name)
-            else
-                print('dispel: '..name)
-            end
-        end
-
-        -- show boss + priority debuffs
-        for i=1,40 do
-            local name,_,icon,_,_,_,_,_,_,_,spellid,_,isBoss,isPlayer = UnitAura(unit, i, 'HARMFUL')
-            if not name then break end
-            if isBoss or IsPriorityDebuff(spellid) then
-                print('boss aura: '..name)
-            end
-        end
-    end
-end
-]]
-
-local function update(self,event,unit)
-    if self.unit ~= unit then return end
-    for name,frame in pairs(self.KuiAuras.frames) do
-        frame.unit = unit
-        frame:Update()
-    end
-end
-
-
+-- #############################################################################
+-- aura frame functions ########################################################
 local function AuraFrame_ArrangeButtons(self)
     -- sort by time remaining
     table.sort(self.buttons, function(a,b)
@@ -216,7 +169,15 @@ local function CreateAuraFrame(frame, filter, point)
         ArrangeButtons = AuraFrame_ArrangeButtons
     }
 end
-
+-- #############################################################################
+-- ouf functions ###############################################################
+local function update(self,event,unit)
+    if self.unit ~= unit then return end
+    for name,frame in pairs(self.KuiAuras.frames) do
+        frame.unit = unit
+        frame:Update()
+    end
+end
 local function enable(self,unit)
     if not self.KuiAuras then return end
 
