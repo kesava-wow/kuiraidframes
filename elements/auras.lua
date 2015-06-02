@@ -188,19 +188,6 @@ local function enable(self,unit)
         'HELPFUL PLAYER',
         { 'TOPLEFT', 'LEFT', 'RIGHT' }
     )
-
-    local debuffs = CreateAuraFrame(
-        self,
-        'HARMFUL',
-        { 'BOTTOMLEFT', 'LEFT', 'RIGHT' }
-    )
-
-    local dispel = CreateAuraFrame(
-        self,
-        'HARMFUL RAID',
-        { 'BOTTOMRIGHT', 'RIGHT', 'LEFT' }
-    )
-
     buffs.callback = function(name,duration,expiration,spellid,isBoss)
         if whitelist.list[spellid] and
            ((duration and duration <= 600) or not duration)
@@ -209,9 +196,20 @@ local function enable(self,unit)
         end
     end
 
+    local debuffs = CreateAuraFrame(
+        self,
+        'HARMFUL',
+        { 'BOTTOMLEFT', 'LEFT', 'RIGHT' }
+    )
     debuffs.callback = function(name,duration,expiration,spellid,isBoss)
         return isBoss or (spellid == 25771 or spellid == 6788)
     end
+
+    local dispel = CreateAuraFrame(
+        self,
+        'HARMFUL RAID',
+        { 'BOTTOMRIGHT', 'RIGHT', 'LEFT' }
+    )
 
     self.KuiAuras.frames.buffs = buffs
     self.KuiAuras.frames.debuffs = debuffs
