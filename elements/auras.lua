@@ -14,6 +14,15 @@ function whitelist.WhitelistChanged()
     whitelist.list = spelllist.GetImportantSpells(select(2, UnitClass('player')))
 end
 
+-- sorts buttons by time remaining ( shorter > longer > timeless )
+local time_sort = function(a,b)
+    if a.expiration and b.expiration then
+        return a.expiration < b.expiration
+    else
+        return a.expiration and not b.expiration
+    end
+end
+
 -- #############################################################################
 -- button functions ############################################################
 local button_UpdateCooldown = function(self,duration,expiration)
@@ -30,14 +39,7 @@ end
 -- #############################################################################
 -- aura frame functions ########################################################
 local function AuraFrame_ArrangeButtons(self)
-    -- sort by time remaining
-    table.sort(self.buttons, function(a,b)
-        if a.expiration and b.expiration then
-            return a.expiration < b.expiration
-        else
-            return a.expiration and not b.expiration
-        end
-    end)
+    table.sort(self.buttons, self.sort and self.sort or time_sort)
 
     local prev
     self.visible = 0
@@ -45,7 +47,7 @@ local function AuraFrame_ArrangeButtons(self)
     -- set positions and show in-use buttons
     for _,button in ipairs(self.buttons) do
         if button.spellid then
-            if self.visible < 5 then
+            if not self.max or self.visible < self.max then
                 self.visible = self.visible + 1
                 button:ClearAllPoints()
 
@@ -80,7 +82,7 @@ local function AuraFrame_GetButton(self)
 
     -- create new button
     local button = CreateFrame('Frame',nil,self.frame.Health)
-    button:SetSize(8,8)
+    button:SetSize(self.size, self.size)
 
     local icon = button:CreateTexture(nil, 'ARTWORK')
     icon:SetTexCoord(.1,.9,.1,.9)
@@ -110,6 +112,10 @@ local function AuraFrame_DisplayButton(self,name,icon,spellid,count,duration,exp
     button.spellid = spellid
 
     button:UpdateCooldown(duration,expiration)
+
+    if self.PreShowButton then
+        self.PreShowButton(self,button)
+    end
 
     self.spellids[spellid] = button
 end
@@ -157,6 +163,7 @@ local function CreateAuraFrame(frame, filter, point)
         filter = filter,
 
         point = point,
+        size = 8,
         x_spacing = 0,
         y_spacing = 0,
         x_offset = 0,
@@ -183,11 +190,23 @@ local function enable(self,unit)
 
     self.KuiAuras.frames = {}
 
+    local class = select(2,UnitClass('player'))
+    local priority_debuff
+
+    if class == 'PRIEST' then
+        -- weakened soul
+        priority_debuff = 6788
+    elseif class == 'PALADIN' then
+        -- forbearance
+        priority_debuff = 25771
+    end
+
     local buffs = CreateAuraFrame(
         self,
         'HELPFUL PLAYER',
         { 'TOPLEFT', 'LEFT', 'RIGHT' }
     )
+    buffs.max = 5
     buffs.callback = function(name,duration,expiration,spellid,isBoss)
         if whitelist.list[spellid] and
            ((duration and duration <= 600) or not duration)
@@ -199,10 +218,25 @@ local function enable(self,unit)
     local debuffs = CreateAuraFrame(
         self,
         'HARMFUL',
-        { 'BOTTOMLEFT', 'LEFT', 'RIGHT' }
+        { 'BOTTOMLEFT', 'BOTTOMLEFT', 'BOTTOMRIGHT' }
     )
+    debuffs.size = 12
+    debuffs.max = 3
     debuffs.callback = function(name,duration,expiration,spellid,isBoss)
-        return isBoss or (spellid == 25771 or spellid == 6788)
+        return isBoss or (spellid == priority_debuff)
+    end
+    debuffs.PreShowButton = function(self,button)
+        if button.spellid == priority_debuff then
+            -- shrink priority debuffs
+            button:SetSize(8,8)
+        else
+            -- enlarge boss debuffs
+            button:SetSize(self.size, self.size)
+        end
+    end
+    debuffs.sort = function(a,b)
+        -- we always want boss debuffs before these
+        return a.spellid == priority_debuff or time_sort(a,b)
     end
 
     local dispel = CreateAuraFrame(
@@ -210,6 +244,7 @@ local function enable(self,unit)
         'HARMFUL RAID',
         { 'BOTTOMRIGHT', 'RIGHT', 'LEFT' }
     )
+    dispel.max = 3
 
     self.KuiAuras.frames.buffs = buffs
     self.KuiAuras.frames.debuffs = debuffs

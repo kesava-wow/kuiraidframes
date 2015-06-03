@@ -133,8 +133,7 @@ function addon:SpawnHeader(name, init_func_spec)
         ]]
     end
 
-    return ouf:SpawnHeader(name, nil, 'solo,raid,party',
-        'showSolo', true,
+    return ouf:SpawnHeader(name, nil, 'raid,party',
         'showPlayer', true,
         'showParty', true,
         'showRaid', true,
@@ -159,7 +158,7 @@ function addon:SpawnTanks()
     header:SetAttribute('roleFilter', 'MAINTANK,MAINASSIST,TANK')
     header:SetAttribute('maxColumns', 1)
 
-    header:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT', 797, 221)
+    header:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT', 1100, -200)
 end
 
 function addon:SpawnTankTargets()
@@ -221,7 +220,7 @@ local function RaidLayout(self, unit)
     }
 
     do
-        local width = 55 - 2
+        local width = width - 2
 
         local myBar = CreateFrame('StatusBar', nil, self.Health)
         myBar:SetStatusBarTexture(texture)
