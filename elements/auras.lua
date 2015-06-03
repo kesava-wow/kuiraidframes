@@ -235,8 +235,8 @@ local function enable(self,unit)
         end
     end
     debuffs.sort = function(a,b)
-        -- we always want boss debuffs before these
-        return a.spellid == priority_debuff or time_sort(a,b)
+        -- we always want boss debuffs before priority debuffs
+        return b.spellid == priority_debuff
     end
 
     local dispel = CreateAuraFrame(

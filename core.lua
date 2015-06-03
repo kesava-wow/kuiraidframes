@@ -7,7 +7,10 @@ KuiRaidFrames = {}
 local addon = KuiRaidFrames
 
 local texture = 'Interface\\AddOns\\Kui_Media\\t\\bar'
-local width,height = 55,35
+local sizes = {
+    default = { 55,35 },
+    target = { 35,35 }
+}
 
 local INIT_MTT = 1
 
@@ -19,6 +22,13 @@ end
 ouf.Tags.Events['kuiraid:name'] = 'UNIT_NAME_UPDATE'
 
 ouf.Tags.Methods['kuiraid:status'] = function(u,r)
+    if not UnitCanAssist('player',u) then
+		local m = UnitHealthMax(u)
+        local c = UnitHealth(u)
+        if c == m or c == 0 or m == 0 then return end
+        return string.format('%.1f', UnitHealth(u) / m * 100)..'%'
+    end
+
     local hp = ouf.Tags.Methods['missinghp'](u)
     hp = hp and '-'..kui.num(hp)
 
@@ -141,8 +151,9 @@ local function UnitFrameOnLeave(self,...)
 end
 -- #############################################################################
 -- spawn functions #############################################################
-function addon:SpawnHeader(name, init_func_spec)
+function addon:SpawnHeader(name, init_func_spec, size)
     local init_func
+    size = size or sizes.default
 
     if init_func_spec == INIT_MTT then
         init_func = [[
@@ -157,8 +168,7 @@ function addon:SpawnHeader(name, init_func_spec)
         ]]
     end
 
-    return ouf:SpawnHeader(name, nil, 'solo,raid,party',
-        'showSolo', true,
+    local header = ouf:SpawnHeader(name, nil, 'raid,party',
         'showPlayer', true,
         'showParty', true,
         'showRaid', true,
@@ -166,7 +176,7 @@ function addon:SpawnHeader(name, init_func_spec)
         'groupingOrder', 'TANK,HEALER,DAMAGER,NONE',
         'sortMethod', 'INDEX',
         'sortDir', 'ASC',
-        'oUF-initialConfigFunction', (init_func):format(width,height),
+        'oUF-initialConfigFunction', (init_func):format(size[1], size[2]),
         'point', 'TOP',
         'yOffset', -1,
         'xOffset', 1,
@@ -175,6 +185,8 @@ function addon:SpawnHeader(name, init_func_spec)
         'columnSpacing', 1,
         'maxColumns', 8
     )
+
+    return header
 end
 
 function addon:SpawnTanks()
@@ -183,11 +195,11 @@ function addon:SpawnTanks()
     header:SetAttribute('roleFilter', 'MAINTANK,MAINASSIST,TANK')
     header:SetAttribute('maxColumns', 1)
 
-    header:SetPoint('TOPLEFT', UIParent, 'TOPLEFT', 1050, -250)
+    header:SetPoint('TOPLEFT', UIParent, 'TOPLEFT', 1100, -250)
 end
 
 function addon:SpawnTankTargets()
-    local header = self:SpawnHeader('oUF_Kui_Raid_Tank_Targets', INIT_MTT)
+    local header = self:SpawnHeader('oUF_Kui_Raid_Tank_Targets', INIT_MTT, sizes.target)
 
     header:SetAttribute('roleFilter', 'MAINTANK,MAINASSIST,TANK')
     header:SetAttribute('maxColumns', 1)
@@ -231,7 +243,7 @@ local function RaidLayout(self, unit)
         local r,g,b
         if status and status > 0 then
             r,g,b = GetThreatStatusColor(status)
-            threat:SetBackdropBorderColor(r,g,b,.3)
+            threat:SetBackdropBorderColor(r,g,b,.5)
             threat:Show()
         else
             threat:Hide()
@@ -250,7 +262,7 @@ local function RaidLayout(self, unit)
         texture = 'Interface\\AddOns\\Kui_RaidFrames\\media\\stippled-bar',
         drawLayer = { 'BACKGROUND', 4 },
         colour = { .3, .7, 1 },
-        alpha = .3
+        alpha = .5
     }
 
     self.KuiAuras = {}
@@ -272,7 +284,7 @@ local function RaidLayout(self, unit)
     }
 
     do
-        local width = width - 2
+        local width = 55 - 2
 
         local myBar = CreateFrame('StatusBar', nil, self.Health)
         myBar:SetStatusBarTexture(texture)
@@ -323,7 +335,7 @@ local function RaidLayout(self, unit)
 
     self.name = addon.CreateFontString(self.overlay)
     self.name:SetPoint('CENTER')
-    self.name:SetFlag(2,9)
+    self.name:SetFlag(2,10)
     self:Tag(self.name, '[kuiraid:name]')
 
     self.status = addon.CreateFontString(self.overlay)
