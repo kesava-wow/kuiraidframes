@@ -116,6 +116,30 @@ end
 
 UIDropDownMenu_Initialize(frame_menu, frame_menu_init, 'MENU')
 -- #############################################################################
+-- scripts #####################################################################
+local function UpdateHighlight(self,event,...)
+    if event == 'OnEnter' or UnitIsUnit('target',self.unit) then
+        local r,g,b
+        if self.Health.invert_fill then
+            r,g,b = self.Health.invert_fill:GetVertexColor()
+        else
+            r,g,b = self.Health:GetStatusBarColor()
+        end
+
+        self.overlay:SetBackdropBorderColor(r,g,b,.5)
+    else
+        self.overlay:SetBackdropBorderColor(0,0,0,0)
+    end
+end
+local function UnitFrameOnEnter(self,...)
+    UpdateHighlight(self,'OnEnter')
+    UnitFrame_OnEnter(self,...)
+end
+local function UnitFrameOnLeave(self,...)
+    UpdateHighlight(self)
+    UnitFrame_OnLeave(self,...)
+end
+-- #############################################################################
 -- spawn functions #############################################################
 function addon:SpawnHeader(name, init_func_spec)
     local init_func
@@ -133,7 +157,8 @@ function addon:SpawnHeader(name, init_func_spec)
         ]]
     end
 
-    return ouf:SpawnHeader(name, nil, 'raid,party',
+    return ouf:SpawnHeader(name, nil, 'solo,raid,party',
+        'showSolo', true,
         'showPlayer', true,
         'showParty', true,
         'showRaid', true,
@@ -158,7 +183,7 @@ function addon:SpawnTanks()
     header:SetAttribute('roleFilter', 'MAINTANK,MAINASSIST,TANK')
     header:SetAttribute('maxColumns', 1)
 
-    header:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT', 1100, -200)
+    header:SetPoint('TOPLEFT', UIParent, 'TOPLEFT', 1050, -250)
 end
 
 function addon:SpawnTankTargets()
@@ -183,8 +208,35 @@ local function RaidLayout(self, unit)
     self.menu = frame_menu_init
     self:RegisterForClicks('AnyUp')
 
+    self:SetScript('OnEnter', UnitFrameOnEnter)
+    self:SetScript('OnLeave', UnitFrameOnLeave)
+
     self:SetBackdrop({ bgFile = kui.m.t.solid })
     self:SetBackdropColor(0,0,0,.9)
+
+    self.Threat = CreateFrame('Frame', nil, self)
+    self.Threat:SetBackdrop({
+        edgeFile = kui.m.t.solid,
+        edgeSize = 1
+    })
+    self.Threat:SetPoint('TOPLEFT', -1, 1)
+    self.Threat:SetPoint('BOTTOMRIGHT', 1, -1)
+    self.Threat:Hide()
+
+    self.Threat.Override = function(self,event,unit)
+        if unit ~= self.unit then return end
+        local status = UnitThreatSituation(unit)
+        local threat = self.Threat
+
+        local r,g,b
+        if status and status > 0 then
+            r,g,b = GetThreatStatusColor(status)
+            threat:SetBackdropBorderColor(r,g,b,.3)
+            threat:Show()
+        else
+            threat:Hide()
+        end
+    end
 
     self.Health = addon.CreateStatusBar(self,nil,true)
     self.Health.frequentUpdates = true
@@ -262,6 +314,13 @@ local function RaidLayout(self, unit)
     self.overlay = CreateFrame('Frame',nil,self.Health)
     self.overlay:SetAllPoints(self.Health)
 
+    self.overlay:SetBackdrop({
+        bgFile = kui.m.t.empty,
+        edgeFile = kui.m.t.solid,
+        edgeSize = 1
+    })
+    self.overlay:SetBackdropBorderColor(0,0,0,0)
+
     self.name = addon.CreateFontString(self.overlay)
     self.name:SetPoint('CENTER')
     self.name:SetFlag(2,9)
@@ -283,6 +342,9 @@ local function RaidLayout(self, unit)
             self.parent.name:SetPoint('CENTER')
         end
     end
+
+	self:RegisterEvent('PLAYER_TARGET_CHANGED', UpdateHighlight)
+	self:RegisterEvent('GROUP_ROSTER_UPDATE', UpdateHighlight)
 end
 -- #############################################################################
 -- register with ouf ###########################################################
