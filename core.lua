@@ -343,8 +343,8 @@ local function RaidLayout(self, unit)
         end
     end
 
-	self:RegisterEvent('PLAYER_TARGET_CHANGED', UpdateHighlight)
-	self:RegisterEvent('GROUP_ROSTER_UPDATE', UpdateHighlight)
+    self:RegisterEvent('PLAYER_TARGET_CHANGED', UpdateHighlight)
+    self:RegisterEvent('GROUP_ROSTER_UPDATE', UpdateHighlight)
 end
 -- #############################################################################
 -- register with ouf ###########################################################
