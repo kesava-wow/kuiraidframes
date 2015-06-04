@@ -22,6 +22,12 @@ end
 ouf.Tags.Events['kuiraid:name'] = 'UNIT_NAME_UPDATE'
 
 ouf.Tags.Methods['kuiraid:status'] = function(u,r)
+    local offline = ouf.Tags.Methods['offline'](u)
+    if offline then return offline end
+
+    local dead = ouf.Tags.Methods['dead'](u)
+    if dead then return dead end
+
     if not UnitCanAssist('player',u) then
 		local m = UnitHealthMax(u)
         local c = UnitHealth(u)
@@ -32,11 +38,7 @@ ouf.Tags.Methods['kuiraid:status'] = function(u,r)
     local hp = ouf.Tags.Methods['missinghp'](u)
     hp = hp and '-'..kui.num(hp)
 
-    return (
-        ouf.Tags.Methods['offline'](u) or
-        ouf.Tags.Methods['dead'](u) or
-        hp
-    )
+    return hp
 end
 ouf.Tags.Events['kuiraid:status'] = 'UNIT_MAXHEALTH UNIT_HEALTH_FREQUENT UNIT_CONNECTION'
 -- #############################################################################
@@ -271,14 +273,14 @@ local function RaidLayout(self, unit)
         insideAlpha = 1,
         outsideAlpha = .5,
         Override = function(self,state)
-            if state == 'outside' then
+            if state == 'inside' then
+                self.Health:SetAlpha(self.Range.insideAlpha)
+                self.name:SetTextColor(1,1,1,1)
+                self.status:SetTextColor(.8,.8,.8,1)
+            else
                 self.Health:SetAlpha(self.Range.outsideAlpha)
                 self.name:SetTextColor(.5,.5,.5,.7)
                 self.status:SetTextColor(.5,.5,.5,.7)
-            else
-                self.Health:SetAlpha(self.Range.insideAlpha)
-                self.name:SetTextColor(1,1,1,1)
-                self.status:SetTextColor(1,1,1,.8)
             end
         end
     }
