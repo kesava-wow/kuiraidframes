@@ -181,11 +181,11 @@ function addon:SpawnHeader(name, init_func_spec, size)
         'sortDir', 'ASC',
         'oUF-initialConfigFunction', (init_func):format(size[1], size[2]),
         'point', 'TOP',
-        'yOffset', -1,
-        'xOffset', 1,
+        'xOffset', config.x_offset,
+        'yOffset', config.y_offset,
         'columnAnchorPoint', 'LEFT',
         'unitsPerColumn', 5,
-        'columnSpacing', 1,
+        'columnSpacing', config.spacing,
         'maxColumns', 8
     )
 
@@ -198,8 +198,7 @@ function addon:SpawnTanks()
     header:SetAttribute('roleFilter', 'MAINTANK,MAINASSIST,TANK')
     header:SetAttribute('maxColumns', 1)
 
-    header:SetPoint('TOPLEFT', UIParent, 'TOPLEFT',
-        config.x_position, config.y_position)
+    header:SetPoint('TOPLEFT', UIParent, 'TOPLEFT', config.x_position, config.y_position)
 end
 
 function addon:SpawnTankTargets()
@@ -208,15 +207,19 @@ function addon:SpawnTankTargets()
     header:SetAttribute('roleFilter', 'MAINTANK,MAINASSIST,TANK')
     header:SetAttribute('maxColumns', 1)
 
-    header:SetPoint('TOPRIGHT', oUF_Kui_Raid_Tanks, 'TOPLEFT', -1, 0)
+    header:SetPoint('TOPRIGHT', oUF_Kui_Raid_Tanks, 'TOPLEFT', -config.spacing, 0)
 end
 
 function addon:SpawnOthers()
     local header = self:SpawnHeader('oUF_Kui_Raid_Others')
 
-    header:SetAttribute('roleFilter', 'HEALER,DAMAGER,NONE')
-
-    header:SetPoint('TOPLEFT', oUF_Kui_Raid_Tanks, 'TOPRIGHT', 1, 0)
+    if config.seperate_tanks then
+        header:SetAttribute('roleFilter', 'HEALER,DAMAGER,NONE')
+        header:SetPoint('TOPLEFT', oUF_Kui_Raid_Tanks, 'TOPRIGHT', config.spacing, 0)
+    else
+        header:SetAttribute('roleFilter', 'MAINTANK,MAINASSIST,HEALER,DAMAGER,NONE')
+        header:SetPoint('TOPLEFT', UIParent, 'TOPLEFT', config.x_position, config.y_position)
+    end
 end
 -- #############################################################################
 -- layout function #############################################################
@@ -407,8 +410,12 @@ addon:RegisterEvent('ADDON_LOADED')
 ouf:RegisterStyle('KuiRaid', RaidLayout)
 ouf:Factory(function(self)
     self:SetActiveStyle('KuiRaid')
-    addon:SpawnTanks()
-    addon:SpawnTankTargets()
+
+    if config.seperate_tanks then
+        addon:SpawnTanks()
+        addon:SpawnTankTargets()
+    end
+
     addon:SpawnOthers()
 --    addon:SpawnPets()
 end)
