@@ -3,8 +3,9 @@ local folder,ns=...
 local ouf = oUF or oUFKuiEmbed
 local kui = LibStub('Kui-1.0')
 
-KuiRaidFrames = {}
+KuiRaidFrames = CreateFrame('Frame',nil,UIParent)
 local addon = KuiRaidFrames
+local config = {}
 
 local texture = 'Interface\\AddOns\\Kui_Media\\t\\bar'
 local sizes = {
@@ -197,7 +198,8 @@ function addon:SpawnTanks()
     header:SetAttribute('roleFilter', 'MAINTANK,MAINASSIST,TANK')
     header:SetAttribute('maxColumns', 1)
 
-    header:SetPoint('TOPLEFT', UIParent, 'TOPLEFT', 1100, -250)
+    header:SetPoint('TOPLEFT', UIParent, 'TOPLEFT',
+        config.x_position, config.y_position)
 end
 
 function addon:SpawnTankTargets()
@@ -324,7 +326,7 @@ local function RaidLayout(self, unit)
         }
     end
 
-    -- text/high frame overlay
+    -- text/high frame overlay (and highlight border)
     self.overlay = CreateFrame('Frame',nil,self.Health)
     self.overlay:SetAllPoints(self.Health)
 
@@ -360,6 +362,46 @@ local function RaidLayout(self, unit)
     self:RegisterEvent('PLAYER_TARGET_CHANGED', UpdateHighlight)
     self:RegisterEvent('GROUP_ROSTER_UPDATE', UpdateHighlight)
 end
+-- #############################################################################
+-- default config ##############################################################
+local default_config = {
+    x_position = 1100,
+    y_position = -250,
+
+    x_offset = 1,
+    y_offset = -1,
+    spacing = 1,
+
+    seperate_tanks = true,
+}
+-- #############################################################################
+-- events ######################################################################
+function addon:ADDON_LOADED(loaded_addon)
+    if loaded_addon ~= folder then return end
+
+    if not KuiRaidFramesSavedVariables then
+        KuiRaidFramesSavedVariables = {}
+    end
+
+    local csv = KuiRaidFramesSavedVariables
+    local local_config = {}
+
+    for k,v in pairs(default_config) do
+        -- apply default config
+        local_config[k] = v
+    end
+
+    for k,v in pairs(csv) do
+        -- apply saved variables
+        local_config[k] = v
+    end
+
+    config = local_config
+end
+addon:SetScript('OnEvent', function(self,event,...)
+    self[event](self,...)
+end)
+addon:RegisterEvent('ADDON_LOADED')
 -- #############################################################################
 -- register with ouf ###########################################################
 ouf:RegisterStyle('KuiRaid', RaidLayout)
