@@ -5,7 +5,7 @@
 ## SavedVariables: KuiRaidFramesSavedVariables
 ## X-oUF: oUFKuiEmbed
 
-ouf/oUF.xml
+lib/embeds.xml
 
 elements/absorb.lua
 elements/auras.lua
