@@ -22,10 +22,10 @@ end
 ouf.Tags.Events['kuiraid:name'] = 'UNIT_NAME_UPDATE'
 
 ouf.Tags.Methods['kuiraid:status'] = function(u,r)
-    local offline = ouf.Tags.Methods['offline'](u)
+    local offline = not UnitIsConnected(u) and 'offline'
     if offline then return offline end
 
-    local dead = ouf.Tags.Methods['dead'](u)
+    local dead = (UnitIsDead(u) and 'dead') or (UnitIsGhost(u) and 'ghost')
     if dead then return dead end
 
     if not UnitIsFriend('player',u) then
@@ -133,7 +133,9 @@ UIDropDownMenu_Initialize(frame_menu, frame_menu_init, 'MENU')
 -- #############################################################################
 -- scripts #####################################################################
 local function UpdateHighlight(self,event,...)
-    if event == 'OnEnter' or UnitIsUnit('target',self.unit) then
+    if  event == 'OnEnter' or
+        UnitIsUnit('target',self.unit)
+    then
         local r,g,b
         if self.Health.invert_fill then
             r,g,b = self.Health.invert_fill:GetVertexColor()
