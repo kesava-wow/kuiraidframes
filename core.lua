@@ -7,7 +7,6 @@ KuiRaidFrames = CreateFrame('Frame',nil,UIParent)
 local addon = KuiRaidFrames
 local config = {}
 
-local texture = 'Interface\\AddOns\\Kui_Media\\t\\bar'
 local sizes = {
     default = { 55,35 },
     target = { 35,35 }
@@ -47,15 +46,18 @@ ouf.Tags.Events['kuiraid:status'] = 'UNIT_MAXHEALTH UNIT_HEALTH_FREQUENT UNIT_CO
 function addon.CreateFontString(parent, flags)
     flags = flags or {}
 
-    flags[1] = flags[1] or 'Interface\\AddOns\\Kui_Media\\f\\francois.ttf'
-    flags[2] = flags[2] or 12
-    flags[3] = flags[3] or 'thinoutline'
+    flags[1] = flags[1] or config.font
+    flags[2] = flags[2] or config.font_size
+    flags[3] = flags[3] or config.font_flags
 
     local fs = parent:CreateFontString(nil,'OVERLAY')
     fs:SetFont(unpack(flags))
     fs:SetWordWrap(false)
-    fs:SetShadowOffset(1,-1)
-    fs:SetShadowColor(0,0,0,.5)
+
+    if config.font_shadow then
+        fs:SetShadowOffset(1,-1)
+        fs:SetShadowColor(0,0,0,.5)
+    end
 
     fs.SetFlag = function(self,flag,val)
         local flags = { self:GetFont() }
@@ -69,7 +71,7 @@ function addon.CreateStatusBar(parent, parent_frame, invert)
     parent_frame = parent_frame or parent
 
     local sb = CreateFrame('StatusBar', nil, parent_frame)
-    sb:SetStatusBarTexture(texture)
+    sb:SetStatusBarTexture(config.texture)
     sb:SetPoint('TOPLEFT', 1, -1)
     sb:SetPoint('BOTTOMRIGHT', -1, 1)
 
@@ -77,7 +79,7 @@ function addon.CreateStatusBar(parent, parent_frame, invert)
         sb:GetStatusBarTexture():SetDrawLayer('BACKGROUND',1)
 
         sb.invert_fill = sb:CreateTexture(nil, 'BACKGROUND', nil, 0)
-        sb.invert_fill:SetTexture(texture)
+        sb.invert_fill:SetTexture(config.texture)
         sb.invert_fill:SetAllPoints(sb)
 
         sb.orig_SetStatusBarColor = sb.SetStatusBarColor
@@ -294,7 +296,7 @@ local function RaidLayout(self, unit)
         local width = 55 - 2
 
         local myBar = CreateFrame('StatusBar', nil, self.Health)
-        myBar:SetStatusBarTexture(texture)
+        myBar:SetStatusBarTexture(config.texture)
         myBar:GetStatusBarTexture():SetDrawLayer('BACKGROUND',2)
         myBar:SetPoint('TOP')
         myBar:SetPoint('BOTTOM')
@@ -303,7 +305,7 @@ local function RaidLayout(self, unit)
         myBar:SetWidth(width)
 
         local otherBar = CreateFrame('StatusBar', nil, self.Health)
-        otherBar:SetStatusBarTexture(texture)
+        otherBar:SetStatusBarTexture(config.texture)
         otherBar:GetStatusBarTexture():SetDrawLayer('BACKGROUND',3)
         otherBar:SetPoint('TOP')
         otherBar:SetPoint('BOTTOM')
@@ -312,7 +314,7 @@ local function RaidLayout(self, unit)
         otherBar:SetWidth(width)
 
         local healAbsorbBar = CreateFrame('StatusBar', nil, self.Health)
-        healAbsorbBar:SetStatusBarTexture(texture)
+        healAbsorbBar:SetStatusBarTexture(config.texture)
         healAbsorbBar:GetStatusBarTexture():SetDrawLayer('BACKGROUND',5)
         healAbsorbBar:SetPoint('TOP')
         healAbsorbBar:SetPoint('BOTTOM')
@@ -342,11 +344,10 @@ local function RaidLayout(self, unit)
 
     self.name = addon.CreateFontString(self.overlay)
     self.name:SetPoint('CENTER')
-    self.name:SetFlag(2,10)
     self:Tag(self.name, '[kuiraid:name]')
 
     self.status = addon.CreateFontString(self.overlay)
-    self.status:SetFlag(2,9)
+    self.status:SetFlag(2,config.font_size-1)
     self.status:SetAlpha(.8)
     self:Tag(self.status, '[kuiraid:status]')
 
@@ -368,6 +369,12 @@ end
 -- #############################################################################
 -- default config ##############################################################
 local default_config = {
+    texture     = kui.m.t.bar,
+    font        = kui.m.f.francois,
+    font_size   = 10,
+    font_flags  = 'THINOUTLINE',
+    font_shadow = false,
+
     x_position = 1100,
     y_position = -250,
 
@@ -397,6 +404,11 @@ function addon:ADDON_LOADED(loaded_addon)
     for k,v in pairs(csv) do
         -- apply saved variables
         local_config[k] = v
+
+        if default_config[k] and v == default_config[k] then
+            -- unset varibles which equal the default setting
+            csv[k] = nil
+        end
     end
 
     config = local_config
