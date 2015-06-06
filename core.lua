@@ -28,7 +28,7 @@ ouf.Tags.Methods['kuiraid:status'] = function(u,r)
     local dead = ouf.Tags.Methods['dead'](u)
     if dead then return dead end
 
-    if not UnitCanAssist('player',u) then
+    if not UnitIsFriend('player',u) then
 		local m = UnitHealthMax(u)
         local c = UnitHealth(u)
         if c == m or c == 0 or m == 0 then return end

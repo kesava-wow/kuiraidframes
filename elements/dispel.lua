@@ -69,7 +69,7 @@ local function UNIT_AURA(self,event,unit)
         b:Hide()
     end
 
-    if UnitCanAssist('player',unit) then
+    if UnitIsFriend('player',unit) then
         ScanDebuffs(self,unit)
         ArrangeIcons(self)
     end
