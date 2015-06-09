@@ -133,6 +133,8 @@ UIDropDownMenu_Initialize(frame_menu, frame_menu_init, 'MENU')
 -- #############################################################################
 -- scripts #####################################################################
 local function UpdateHighlight(self,event,...)
+    -- FIXME player_target_changed doesn't seem to fire on raid targets
+    -- which doesn't make sense but okay
     if  event == 'OnEnter' or
         UnitIsUnit('target',self.unit)
     then
@@ -221,7 +223,7 @@ function addon:SpawnOthers()
         header:SetAttribute('roleFilter', 'HEALER,DAMAGER,NONE')
         header:SetPoint('TOPLEFT', oUF_Kui_Raid_Tanks, 'TOPRIGHT', config.spacing, 0)
     else
-        header:SetAttribute('roleFilter', 'MAINTANK,MAINASSIST,HEALER,DAMAGER,NONE')
+        header:SetAttribute('roleFilter', 'MAINTANK,MAINASSIST,TANK,HEALER,DAMAGER,NONE')
         header:SetPoint('TOPLEFT', UIParent, 'TOPLEFT', config.x_position, config.y_position)
     end
 end
@@ -375,7 +377,7 @@ local default_config = {
     font        = kui.m.f.francois,
     font_size   = 10,
     font_flags  = 'THINOUTLINE',
-    font_shadow = false,
+    font_shadow = true,
 
     x_position = 1100,
     y_position = -250,
@@ -391,28 +393,50 @@ local default_config = {
 function addon:ADDON_LOADED(loaded_addon)
     if loaded_addon ~= folder then return end
 
-    if not KuiRaidFramesSavedVariables then
-        KuiRaidFramesSavedVariables = {}
+    if not KuiRaidFramesCharacterSaved then
+        KuiRaidFramesCharacterSaved = {}
+    end
+    if not KuiRaidFramesSaved then
+        KuiRaidFramesSaved = {}
+    end
+    if not KuiRaidFramesSaved.profiles then
+        KuiRaidFramesSaved.profiles = {}
     end
 
-    local csv = KuiRaidFramesSavedVariables
+    local csv = KuiRaidFramesCharacterSaved
+    local gsv = KuiRaidFramesSaved
     local local_config = {}
+
+    -- get profile
+    if not csv.profile then
+        csv.profile = 'default'
+    end
+
+    if not gsv.profiles[csv.profile] then
+        gsv.profiles[csv.profile] = {}
+    end
+
+    local profile = gsv.profiles[csv.profile]
+    KRF_P = profile -- for easier configuring
 
     for k,v in pairs(default_config) do
         -- apply default config
         local_config[k] = v
     end
 
-    for k,v in pairs(csv) do
-        -- apply saved variables
+    for k,v in pairs(profile) do
+        -- apply saved variables from profile
         local_config[k] = v
 
         if default_config[k] and v == default_config[k] then
             -- unset varibles which equal the default setting
-            csv[k] = nil
+            profile[k] = nil
         end
     end
 
+    -- TODO config UIs update the global variables -
+    -- so then at some point a function needs to update this local config table
+    -- from the global variable when configuration is changed
     config = local_config
 end
 addon:SetScript('OnEvent', function(self,event,...)

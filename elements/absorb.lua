@@ -51,6 +51,7 @@ local function enable(self,unit)
 
     ka.spark = self.Health:CreateTexture(nil,'ARTWORK')
     ka.spark:SetTexture('Interface\\AddOns\\Kui_Media\\t\\spark')
+    ka.spark:SetDrawLayer(unpack(ka.drawLayer))
     ka.spark:SetPoint('TOP', self.Health, 'TOPRIGHT', -1, 5)
     ka.spark:SetPoint('BOTTOM', self.Health, 'BOTTOMRIGHT', -1, -5)
     ka.spark:SetVertexColor(unpack(ka.colour))
