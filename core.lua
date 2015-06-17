@@ -388,6 +388,34 @@ local default_config = {
 
     seperate_tanks = true,
 }
+-- TODO config hooks
+local config_hooks = {}
+function config_hooks.texture(frame,value)
+    frame.Health:SetStatusBarTexture(value)
+end
+function config_hooks.font(frame,value)
+    frame.name:SetFlag(1,value)
+end
+-- etc..
+function addon:ConfigChanged(profile,path)
+    -- path resolves like:
+    -- path = { 'table1', 'table2', 'setting_name' }
+    -- config = { table1 = { table2 = { setting_name = nil } } }
+    if not gsv[profile] then return end
+    if not gsv[profile][path[1]] then return end
+
+    local new_value = gsv[profile][path[1]]
+    local hook = config_hooks[path[1]]
+
+    local_config[path[1]] = new_value
+
+    if hook then
+        for i,f in pairs(addon.frames) do
+            -- iterate frames
+            hook(frame,new_value)
+        end
+    end
+end
 -- #############################################################################
 -- events ######################################################################
 function addon:ADDON_LOADED(loaded_addon)
