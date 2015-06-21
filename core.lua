@@ -171,6 +171,17 @@ local function ThreatHook(self,event,unit)
         threat:Hide()
     end
 end
+local function StatusTextUpdateTag(self)
+    -- move name when status text is shown/hidden
+    self.orig_UpdateTag(self)
+
+    if self:GetText() then
+        self.parent.name:SetPoint('CENTER', 0, 6)
+        self:SetPoint('CENTER', 0, -6)
+    else
+        self.parent.name:SetPoint('CENTER')
+    end
+end
 local function UnitFrameOnEnter(self,...)
     UnitFrame_OnEnter(self,...)
 end
@@ -352,16 +363,11 @@ local function RaidLayout(self, unit)
     self:Tag(self.status, '[kuiraid:status]')
 
     self.status.orig_UpdateTag = self.status.UpdateTag
-    self.status.UpdateTag = function(self)
-        self.orig_UpdateTag(self)
+    self.status.UpdateTag = StatusTextUpdateTag
 
-        if self:GetText() then
-            self.parent.name:SetPoint('CENTER', 0, 6)
-            self:SetPoint('CENTER', 0, -6)
-        else
-            self.parent.name:SetPoint('CENTER')
-        end
-    end
+    self.ResurrectIcon = self.overlay:CreateTexture(nil, 'ARTWORK')
+    self.ResurrectIcon:SetSize(20,20)
+    self.ResurrectIcon:SetPoint('TOPRIGHT', 5, 5)
 
     self.KuiTargetHighlight = {
         func = KuiTargetHighlightHook
