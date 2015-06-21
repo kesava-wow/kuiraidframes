@@ -6,7 +6,6 @@
 --]]
 local ouf = oUF or oUFKuiEmbed
 
-local class = select(2,UnitClass('player'))
 local types = {
     Magic =   { .2, .6, 1 },
     Curse =   { .6,  0, 1 },
