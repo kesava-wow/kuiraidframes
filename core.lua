@@ -176,10 +176,13 @@ local function StatusTextUpdateTag(self)
     self.orig_UpdateTag(self)
 
     if self:GetText() then
-        self.parent.name:SetPoint('CENTER', 0, 6)
+        self.parent.name:SetPoint('LEFT', 0, 6)
+        self.parent.name:SetPoint('RIGHT')
         self:SetPoint('CENTER', 0, -6)
     else
-        self.parent.name:SetPoint('CENTER')
+        -- neutral position
+        self.parent.name:SetPoint('LEFT')
+        self.parent.name:SetPoint('RIGHT')
     end
 end
 local function UnitFrameOnEnter(self,...)
@@ -354,9 +357,8 @@ local function RaidLayout(self, unit)
     self.overlay:SetBackdropBorderColor(0,0,0,0)
 
     self.name = addon.CreateFontString(self.overlay)
-    self.name:SetPoint('LEFT')
-    self.name:SetPoint('RIGHT')
     self:Tag(self.name, '[kuiraid:name]')
+    -- positioned by StatusTextUpdateTag
 
     self.status = addon.CreateFontString(self.overlay)
     self.status:SetFlag(2,config.font_size-1)
