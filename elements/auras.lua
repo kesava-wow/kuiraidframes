@@ -121,7 +121,9 @@ local function AuraFrame_DisplayButton(self,name,icon,spellid,count,duration,exp
 end
 
 local function AuraFrame_Update(self)
-    self:GetAuras()
+    if self.only_friends and self.unit_is_friend then
+        self:GetAuras()
+    end
 
     -- unregister and hide buttons which weren't used this update
     for _,button in pairs(self.buttons) do
@@ -180,6 +182,9 @@ end
 -- ouf functions ###############################################################
 local function update(self,event,unit)
     if self.unit ~= unit then return end
+
+    self.KuiAuras.unit_is_friend = UnitIsFriend('player', unit)
+
     for name,frame in pairs(self.KuiAuras.frames) do
         frame.unit = unit
         frame:Update()
@@ -207,6 +212,7 @@ local function enable(self,unit)
         { 'TOPLEFT', 'LEFT', 'RIGHT' }
     )
     buffs.max = 5
+    buffs.only_friends = true
     buffs.callback = function(name,duration,expiration,spellid,isBoss)
         if whitelist.list[spellid] and
            ((duration and duration <= 600) or not duration)
@@ -222,6 +228,7 @@ local function enable(self,unit)
     )
     debuffs.size = 12
     debuffs.max = 3
+    debuffs.only_friends = true
     debuffs.callback = function(name,duration,expiration,spellid,isBoss)
         return isBoss or (spellid == priority_debuff)
     end
@@ -244,6 +251,7 @@ local function enable(self,unit)
         'HARMFUL RAID',
         { 'BOTTOMRIGHT', 'RIGHT', 'LEFT' }
     )
+    dispel.only_friends = true
     dispel.max = 3
 
     self.KuiAuras.frames.buffs = buffs
