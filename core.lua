@@ -131,13 +131,9 @@ end
 
 UIDropDownMenu_Initialize(frame_menu, frame_menu_init, 'MENU')
 -- #############################################################################
--- scripts #####################################################################
-local function UpdateHighlight(self,event,...)
-    -- FIXME player_target_changed doesn't seem to fire on raid targets
-    -- which doesn't make sense but okay
-    if  event == 'OnEnter' or
-        UnitIsUnit('target',self.unit)
-    then
+-- scripts/hooks ###############################################################
+local function KuiTargetHighlightHook(self,show)
+    if show then
         local r,g,b
         if self.Health.invert_fill then
             r,g,b = self.Health.invert_fill:GetVertexColor()
@@ -150,12 +146,35 @@ local function UpdateHighlight(self,event,...)
         self.overlay:SetBackdropBorderColor(0,0,0,0)
     end
 end
+local function RangeHook(self,state)
+    if state == 'inside' then
+        self.Health:SetAlpha(self.Range.insideAlpha)
+        self.name:SetTextColor(1,1,1,1)
+        self.status:SetTextColor(.8,.8,.8,1)
+    else
+        self.Health:SetAlpha(self.Range.outsideAlpha)
+        self.name:SetTextColor(.5,.5,.5,.7)
+        self.status:SetTextColor(.5,.5,.5,.7)
+    end
+end
+local function ThreatHook(self,event,unit)
+    if unit ~= self.unit then return end
+    local status = UnitThreatSituation(unit)
+    local threat = self.Threat
+
+    local r,g,b
+    if status and status > 0 then
+        r,g,b = GetThreatStatusColor(status)
+        threat:SetBackdropBorderColor(r,g,b,.5)
+        threat:Show()
+    else
+        threat:Hide()
+    end
+end
 local function UnitFrameOnEnter(self,...)
-    UpdateHighlight(self,'OnEnter')
     UnitFrame_OnEnter(self,...)
 end
 local function UnitFrameOnLeave(self,...)
-    UpdateHighlight(self)
     UnitFrame_OnLeave(self,...)
 end
 -- #############################################################################
@@ -248,20 +267,7 @@ local function RaidLayout(self, unit)
     self.Threat:SetPoint('BOTTOMRIGHT', 1, -1)
     self.Threat:Hide()
 
-    self.Threat.Override = function(self,event,unit)
-        if unit ~= self.unit then return end
-        local status = UnitThreatSituation(unit)
-        local threat = self.Threat
-
-        local r,g,b
-        if status and status > 0 then
-            r,g,b = GetThreatStatusColor(status)
-            threat:SetBackdropBorderColor(r,g,b,.5)
-            threat:Show()
-        else
-            threat:Hide()
-        end
-    end
+    self.Threat.Override = ThreatHook
 
     self.Health = addon.CreateStatusBar(self,nil,true)
     self.Health.frequentUpdates = true
@@ -283,17 +289,7 @@ local function RaidLayout(self, unit)
     self.Range = {
         insideAlpha = 1,
         outsideAlpha = .5,
-        Override = function(self,state)
-            if state == 'inside' then
-                self.Health:SetAlpha(self.Range.insideAlpha)
-                self.name:SetTextColor(1,1,1,1)
-                self.status:SetTextColor(.8,.8,.8,1)
-            else
-                self.Health:SetAlpha(self.Range.outsideAlpha)
-                self.name:SetTextColor(.5,.5,.5,.7)
-                self.status:SetTextColor(.5,.5,.5,.7)
-            end
-        end
+        Override = RangeHook
     }
 
     do
@@ -367,8 +363,9 @@ local function RaidLayout(self, unit)
         end
     end
 
-    self:RegisterEvent('PLAYER_TARGET_CHANGED', UpdateHighlight)
-    self:RegisterEvent('GROUP_ROSTER_UPDATE', UpdateHighlight)
+    self.KuiTargetHighlight = {
+        func = KuiTargetHighlightHook
+    }
 end
 -- #############################################################################
 -- default config ##############################################################

@@ -12,6 +12,7 @@ lib\embeds.xml
 elements\absorb.lua
 elements\auras.lua
 elements\dispel.lua
+elements\highlight.lua
 
 core.lua
 
