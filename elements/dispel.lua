@@ -52,7 +52,7 @@ end
 
 local function ScanDebuffs(self,unit)
     for i=1,40 do
-        local name,_,_,_,d_type = UnitDebuff(unit,i)
+        local name,_,_,_,d_type = UnitDebuff(unit,i,'RAID')
 
         if name and d_type and types[d_type] then
             self.KuiDispel.icons[d_type]:Show()
