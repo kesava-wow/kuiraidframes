@@ -60,6 +60,10 @@ local function enable(self,unit)
 
     self:RegisterEvent('UNIT_MAXHEALTH', update)
     self:RegisterEvent('UNIT_ABSORB_AMOUNT_CHANGED', update)
+
+    self:HookScript('OnShow', function(self)
+        if self.unit then update(self,nil,self.unit) end
+    end)
 end
 
 ouf:AddElement('KuiAbsorb', update, enable, nil)
