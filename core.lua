@@ -365,9 +365,15 @@ local function RaidLayout(self, unit)
     self.status.orig_UpdateTag = self.status.UpdateTag
     self.status.UpdateTag = StatusTextUpdateTag
 
-    self.ResurrectIcon = self.overlay:CreateTexture(nil, 'ARTWORK')
-    self.ResurrectIcon:SetSize(20,20)
+    self.ResurrectIcon = self.overlay:CreateTexture(nil, 'OVERLAY')
     self.ResurrectIcon:SetPoint('TOPRIGHT', 5, 5)
+    self.ResurrectIcon:SetSize(22,22)
+    self.ResurrectIcon:Hide()
+
+    self.ReadyCheck = self.overlay:CreateTexture(nil, 'OVERLAY')
+    self.ReadyCheck:SetPoint('LEFT', self.name, 'RIGHT', -3, 0)
+    self.ReadyCheck:SetSize(16,16)
+    self.ReadyCheck:Hide()
 
     self.KuiTargetHighlight = {
         func = KuiTargetHighlightHook
