@@ -17,7 +17,7 @@ local INIT_MTT = 1
 -- #############################################################################
 -- ouf tags ####################################################################
 ouf.Tags.Methods['kuiraid:name'] = function(u,r)
-    return kui.utf8sub(UnitName(u or r), 0, 6)
+    return strtrim(kui.utf8sub(UnitName(u or r), 0, 6))
 end
 ouf.Tags.Events['kuiraid:name'] = 'UNIT_NAME_UPDATE'
 
