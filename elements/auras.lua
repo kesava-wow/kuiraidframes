@@ -251,6 +251,8 @@ local function enable(self,unit)
     self.KuiAuras.frames.dispel = dispel
 
     self:RegisterEvent('UNIT_AURA', update)
+
+    return true
 end
 
 spelllist.RegisterChanged(whitelist, 'WhitelistChanged')
