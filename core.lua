@@ -9,7 +9,7 @@ local config = {}
 
 local sizes = {
     default = { 55,35 },
-    target = { 35,35 }
+    target = { 40,35 }
 }
 
 local INIT_MTT = 1
@@ -354,7 +354,8 @@ local function RaidLayout(self, unit)
     self.overlay:SetBackdropBorderColor(0,0,0,0)
 
     self.name = addon.CreateFontString(self.overlay)
-    self.name:SetPoint('CENTER')
+    self.name:SetPoint('LEFT')
+    self.name:SetPoint('RIGHT')
     self:Tag(self.name, '[kuiraid:name]')
 
     self.status = addon.CreateFontString(self.overlay)
@@ -371,7 +372,7 @@ local function RaidLayout(self, unit)
     self.ResurrectIcon:Hide()
 
     self.ReadyCheck = self.overlay:CreateTexture(nil, 'OVERLAY')
-    self.ReadyCheck:SetPoint('LEFT', self.name, 'RIGHT', -3, 0)
+    self.ReadyCheck:SetPoint('RIGHT', 5, 0)
     self.ReadyCheck:SetSize(16,16)
     self.ReadyCheck:Hide()
 
