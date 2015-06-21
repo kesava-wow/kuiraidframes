@@ -6,6 +6,7 @@
 ## SavedVariablesPerCharacter: KuiRaidFramesCharacterSaved
 ## X-oUF: oUFKuiEmbed
 
+oUF/oUF.xml
 lib/embeds.xml
 
 elements/absorb.lua
