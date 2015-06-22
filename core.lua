@@ -2,10 +2,19 @@
 local folder,ns=...
 local ouf = oUF or oUFKuiEmbed
 local kui = LibStub('Kui-1.0')
+local spelllist = LibStub('KuiSpellList-1.0')
 
 KuiRaidFrames = CreateFrame('Frame',nil,UIParent)
 local addon = KuiRaidFrames
 local config = {}
+
+local player_class
+local whitelist = {}
+local auras_priority_debuff
+
+function whitelist.WhitelistChanged()
+    whitelist.list = spelllist.GetImportantSpells(player_class)
+end
 
 local sizes = {
     default = { 55,35 },
@@ -396,7 +405,50 @@ local function RaidLayout(self, unit)
         self.ReadyCheck:SetSize(16,16)
         self.ReadyCheck:Hide()
 
-        self.KuiAuras = {}
+        -- aura frames
+        local buffs = {
+            filter = 'HELPFUL PLAYER',
+            point = { 'TOPLEFT', 'LEFT', 'RIGHT' },
+            max = 5,
+        }
+        buffs.callback = function(name,duration,expiration,spellid)
+            if whitelist.list[spellid] and
+               ((duration and duration <= 600) or not duration)
+            then
+                return true
+            end
+        end
+
+        local debuffs = {
+            filter = 'HARMFUL',
+            point = { 'BOTTOMLEFT', 'BOTTOMLEFT', 'BOTTOMRIGHT' },
+            size = 12,
+            max = 3
+        }
+        debuffs.callback = function(name,duration,expiration,spellid,isBoss)
+            return isBoss or (spellid == auras_priority_debuff)
+        end
+        debuffs.PreShowButton = function(self,button)
+            if button.spellid == auras_priority_debuff then
+                -- shrink priority debuffs
+                button:SetSize(8,8)
+            else
+                -- enlarge boss debuffs
+                button:SetSize(self.size, self.size)
+            end
+        end
+        debuffs.sort = function(a,b)
+            -- we always want boss debuffs before priority debuffs
+            return b.spellid == priority_debuff
+        end
+
+        local dispel = {
+            filter = 'HARMFUL RAID',
+            points = { 'BOTTOMRIGHT', 'RIGHT', 'LEFT' },
+            max = 3
+        }
+
+        self.KuiAuras = { buffs, debuffs, dispel }
     end
 end
 -- #############################################################################
@@ -453,6 +505,20 @@ end
 function addon:ADDON_LOADED(loaded_addon)
     if loaded_addon ~= folder then return end
 
+    player_class = select(2,UnitClass('player'))
+
+    -- initialise whitelist
+    spelllist.RegisterChanged(whitelist, 'WhitelistChanged')
+    whitelist.WhitelistChanged()
+
+    -- find priority debuff for auras frame
+    if player_class == 'PRIEST' then
+        auras_priority_debuff = 6788 -- weakened soul
+    elseif player_class == 'PALADIN' then
+        auras_priority_debuff = 25771 -- forbearance
+    end
+
+    -- initialise saved variables
     if not KuiRaidFramesCharacterSaved then
         KuiRaidFramesCharacterSaved = {}
     end

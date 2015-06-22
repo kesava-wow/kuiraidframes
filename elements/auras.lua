@@ -1,19 +1,10 @@
 --[[
 -- Raid auras element for oUF.
--- Shows player-cast buffs in KuiSpellList whitelist.
--- Shows dispellable and boss-cast debuffs.
 -- By Kesava @ curse.com.
 -- All rights reserved.
 --]]
 local ouf = oUF or oUFKuiEmbed
 local UnitIsFriend = UnitIsFriend
-
-local spelllist = LibStub('KuiSpellList-1.0')
-local whitelist = {}
-
-function whitelist.WhitelistChanged()
-    whitelist.list = spelllist.GetImportantSpells(select(2, UnitClass('player')))
-end
 
 -- sorts buttons by time remaining ( shorter > longer > timeless )
 local time_sort = function(a,b)
@@ -216,74 +207,21 @@ local function enable(self,unit)
 
     self.KuiAuras.frames = {}
 
-    local class = select(2,UnitClass('player'))
-    local priority_debuff
+    for i,frame_def in ipairs(self.KuiAuras) do
+        local new_frame = CreateAuraFrame(self)
 
-    if class == 'PRIEST' then
-        -- weakened soul
-        priority_debuff = 6788
-    elseif class == 'PALADIN' then
-        -- forbearance
-        priority_debuff = 25771
-    end
-
-    local buffs = CreateAuraFrame(
-        self,
-        'HELPFUL PLAYER',
-        { 'TOPLEFT', 'LEFT', 'RIGHT' }
-    )
-    buffs.max = 5
-    buffs.only_friends = true
-    buffs.callback = function(name,duration,expiration,spellid,isBoss)
-        if whitelist.list[spellid] and
-           ((duration and duration <= 600) or not duration)
-        then
-            return true
+        for k,v in pairs(frame_def) do
+            new_frame[k] = v
         end
+
+        self.KuiAuras.frames[i] = new_frame
+        self.KuiAuras[i] = nil
     end
 
-    local debuffs = CreateAuraFrame(
-        self,
-        'HARMFUL',
-        { 'BOTTOMLEFT', 'BOTTOMLEFT', 'BOTTOMRIGHT' }
-    )
-    debuffs.size = 12
-    debuffs.max = 3
-    debuffs.only_friends = true
-    debuffs.callback = function(name,duration,expiration,spellid,isBoss)
-        return isBoss or (spellid == priority_debuff)
+    if #self.KuiAuras.frames > 0 then
+        self:RegisterEvent('UNIT_AURA', update)
+        return true
     end
-    debuffs.PreShowButton = function(self,button)
-        if button.spellid == priority_debuff then
-            -- shrink priority debuffs
-            button:SetSize(8,8)
-        else
-            -- enlarge boss debuffs
-            button:SetSize(self.size, self.size)
-        end
-    end
-    debuffs.sort = function(a,b)
-        -- we always want boss debuffs before priority debuffs
-        return b.spellid == priority_debuff
-    end
-
-    local dispel = CreateAuraFrame(
-        self,
-        'HARMFUL RAID',
-        { 'BOTTOMRIGHT', 'RIGHT', 'LEFT' }
-    )
-    dispel.only_friends = true
-    dispel.max = 3
-
-    self.KuiAuras.frames.buffs = buffs
-    self.KuiAuras.frames.debuffs = debuffs
-    self.KuiAuras.frames.dispel = dispel
-
-    self:RegisterEvent('UNIT_AURA', update)
-
-    return true
 end
-
-spelllist.RegisterChanged(whitelist, 'WhitelistChanged')
 
 ouf:AddElement('KuiAuras', update, enable, nil)
