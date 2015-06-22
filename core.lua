@@ -312,14 +312,6 @@ local function RaidLayout(self, unit)
         alpha = .5
     }
 
-    self.KuiAuras = {}
-
-    self.Range = {
-        insideAlpha = 1,
-        outsideAlpha = .5,
-        Override = RangeHook
-    }
-
     do
         local width = 55 - 2
 
@@ -382,19 +374,30 @@ local function RaidLayout(self, unit)
     self.status.orig_UpdateTag = self.status.UpdateTag
     self.status.UpdateTag = StatusTextUpdateTag
 
-    self.ResurrectIcon = self.overlay:CreateTexture(nil, 'OVERLAY')
-    self.ResurrectIcon:SetPoint('TOPRIGHT', 5, 5)
-    self.ResurrectIcon:SetSize(22,22)
-    self.ResurrectIcon:Hide()
-
-    self.ReadyCheck = self.overlay:CreateTexture(nil, 'OVERLAY')
-    self.ReadyCheck:SetPoint('RIGHT', 5, 0)
-    self.ReadyCheck:SetSize(16,16)
-    self.ReadyCheck:Hide()
-
     self.KuiTargetHighlight = {
         func = KuiTargetHighlightHook
     }
+
+    self.Range = {
+        insideAlpha = 1,
+        outsideAlpha = .5,
+        Override = RangeHook
+    }
+
+    if self:GetParent():GetName() ~= 'oUF_Kui_Raid_Tank_Targets' then
+        -- friendly-only elements
+        self.ResurrectIcon = self.overlay:CreateTexture(nil, 'OVERLAY')
+        self.ResurrectIcon:SetPoint('TOPRIGHT', 5, 5)
+        self.ResurrectIcon:SetSize(22,22)
+        self.ResurrectIcon:Hide()
+
+        self.ReadyCheck = self.overlay:CreateTexture(nil, 'OVERLAY')
+        self.ReadyCheck:SetPoint('RIGHT', 5, 0)
+        self.ReadyCheck:SetSize(16,16)
+        self.ReadyCheck:Hide()
+
+        self.KuiAuras = {}
+    end
 end
 -- #############################################################################
 -- default config ##############################################################

@@ -6,6 +6,7 @@
 -- All rights reserved.
 --]]
 local ouf = oUF or oUFKuiEmbed
+local UnitIsFriend = UnitIsFriend
 
 local spelllist = LibStub('KuiSpellList-1.0')
 local whitelist = {}
@@ -120,28 +121,48 @@ local function AuraFrame_DisplayButton(self,name,icon,spellid,count,duration,exp
     self.spellids[spellid] = button
 end
 
-local function AuraFrame_Update(self)
-    if self.only_friends and self.unit_is_friend then
-        self:GetAuras()
+local function AuraFrame_HideButton(self,button)
+    if button.spellid then
+        self.spellids[button.spellid] = nil
     end
 
-    -- unregister and hide buttons which weren't used this update
-    for _,button in pairs(self.buttons) do
-        if button.spellid and not button.used then
-            self.spellids[button.spellid] = nil
+    button.duration = nil
+    button.expiration = nil
+    button.spellid = nil
 
-            button.duration = nil
-            button.expiration = nil
-            button.spellid = nil
+    button:Hide()
+end
 
-            button:Hide()
+local function AuraFrame_Update(self)
+    if  (self.only_friends and self.unit_is_friend)
+        or not self.only_friends
+    then
+        -- update auras
+        self:GetAuras()
+
+        -- unregister and hide buttons which weren't used this update
+        for _,button in pairs(self.buttons) do
+            if button.spellid and not button.used then
+                self:HideButton(button)
+            end
+
+            -- set used to nil until they are recalled next update
+            button.used = nil
         end
 
-        -- set used to nil until they are recalled next update
-        button.used = nil
-    end
+        self:ArrangeButtons()
+    else
+        if self.visible and self.visible > 0 then
+            -- hide all
+            for _,button in pairs(self.buttons) do
+                self:HideButton(button)
+                button.used = nil
+            end
 
-    self:ArrangeButtons()
+            -- force visible count to 0 (usually updated by ArrangeButtons)
+            self.visible = 0
+        end
+    end
 end
 
 local function AuraFrame_GetAuras(self)
@@ -175,6 +196,7 @@ local function CreateAuraFrame(frame, filter, point)
         GetAuras = AuraFrame_GetAuras,
         GetButton = AuraFrame_GetButton,
         DisplayButton = AuraFrame_DisplayButton,
+        HideButton = AuraFrame_HideButton,
         ArrangeButtons = AuraFrame_ArrangeButtons
     }
 end
@@ -183,9 +205,8 @@ end
 local function update(self,event,unit)
     if self.unit ~= unit then return end
 
-    self.KuiAuras.unit_is_friend = UnitIsFriend('player', unit)
-
     for name,frame in pairs(self.KuiAuras.frames) do
+        frame.unit_is_friend = UnitIsFriend('player',unit)
         frame.unit = unit
         frame:Update()
     end
