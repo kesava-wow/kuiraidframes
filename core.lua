@@ -210,9 +210,16 @@ function addon:SpawnHeader(name, init_func_spec, size)
         ]]
     end
 
-    local header = ouf:SpawnHeader(name, nil, 'raid,party',
-        'showPlayer', true,
-        'showParty', true,
+    local header_visibility = 'raid'
+
+    if config.party then
+        header_visibility = 'party,'..header_visibility
+    end
+    if config.debug then
+        header_visibility = 'solo,'..header_visibility
+    end
+
+    local header = ouf:SpawnHeader(name, nil, header_visibility,
         'showRaid', true,
         'groupBy', 'ASSIGNEDROLE',
         'groupingOrder', 'TANK,HEALER,DAMAGER,NONE',
@@ -227,6 +234,13 @@ function addon:SpawnHeader(name, init_func_spec, size)
         'columnSpacing', config.spacing,
         'maxColumns', 8
     )
+
+    if config.party then
+        header:SetAttribute('showParty', true)
+    end
+    if config.debug then
+        header:SetAttribute('showSolo', true)
+    end
 
     return header
 end
@@ -399,6 +413,9 @@ local default_config = {
     spacing = 1,
 
     seperate_tanks = true,
+
+    party = true,
+    debug = false,
 }
 -- TODO config hooks
 local config_hooks = {}
