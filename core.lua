@@ -494,22 +494,22 @@ function addon:ADDON_LOADED(loaded_addon)
     -- initialise config
     addon.config = kuiconfig:Initialise('KuiRaidFrames',default_config)
     config = addon.config:GetConfig()
+
+    -- register with ouf
+    ouf:RegisterStyle('KuiRaid', RaidLayout)
+    ouf:Factory(function(self)
+        self:SetActiveStyle('KuiRaid')
+
+        if config.seperate_tanks then
+            addon:SpawnTanks()
+            addon:SpawnTankTargets()
+        end
+
+        addon:SpawnOthers()
+    --    addon:SpawnPets()
+    end)
 end
 addon:SetScript('OnEvent', function(self,event,...)
     self[event](self,...)
 end)
 addon:RegisterEvent('ADDON_LOADED')
--- #############################################################################
--- register with ouf ###########################################################
-ouf:RegisterStyle('KuiRaid', RaidLayout)
-ouf:Factory(function(self)
-    self:SetActiveStyle('KuiRaid')
-
-    if config.seperate_tanks then
-        addon:SpawnTanks()
-        addon:SpawnTankTargets()
-    end
-
-    addon:SpawnOthers()
---    addon:SpawnPets()
-end)
