@@ -69,12 +69,12 @@ function config_meta:GetActiveProfile()
     return self.profile
 end
 
-function kc:Initialise(addon,folder,defaults)
+function kc:Initialise(var_prefix,defaults)
     local config_tbl = {}
     setmetatable(config_tbl, config_meta)
     config_tbl.defaults = defaults
 
-    local g_name, c_name = folder..'Saved', folder..'CharacterSaved'
+    local g_name, c_name = var_prefix..'Saved', var_prefix..'CharacterSaved'
 
     if not _G[g_name] then _G[g_name] = {} end
     if not _G[c_name] then _G[c_name] = {} end

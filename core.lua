@@ -492,7 +492,7 @@ function addon:ADDON_LOADED(loaded_addon)
     end
 
     -- initialise config
-    addon.config = kuiconfig:Initialise(addon,'KuiRaidFrames',default_config)
+    addon.config = kuiconfig:Initialise('KuiRaidFrames',default_config)
     config = addon.config:GetConfig()
 end
 addon:SetScript('OnEvent', function(self,event,...)
