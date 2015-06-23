@@ -41,6 +41,13 @@ function config_meta:GetConfig()
     return local_config
 end
 
+function config_meta:SetConfig(k,v)
+    if not self.profile then return end
+    self.profile[k] = v
+
+    -- TODO emit config changed to listeners
+end
+
 function config_meta:GetProfile(profile_name)
     if not profile_name then
         profile_name = 'default'
