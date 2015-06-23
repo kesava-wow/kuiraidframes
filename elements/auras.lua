@@ -52,7 +52,7 @@ local function AuraFrame_ArrangeButtons(self)
                 prev = button
                 button:Show()
             else
-                -- hide overflow
+                -- hide overflow but keep attached data (spellid, etc)
                 button:Hide()
             end
         end

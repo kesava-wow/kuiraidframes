@@ -1,17 +1,18 @@
 
 local folder,ns=...
-local ouf = oUF or oUFKuiEmbed
 local kui = LibStub('Kui-1.0')
-local spelllist = LibStub('KuiSpellList-1.0')
+local ouf = oUF or oUFKuiEmbed
 
 KuiRaidFrames = CreateFrame('Frame',nil,UIParent)
 local addon = KuiRaidFrames
-local config = {}
 
-local player_class
+local kuiconfig = LibStub('KuiConfig-1.0')
+local default_config, config
+
+local player_class, auras_priority_debuff
+
+local spelllist = LibStub('KuiSpellList-1.0')
 local whitelist = {}
-local auras_priority_debuff
-
 function whitelist.WhitelistChanged()
     whitelist.list = spelllist.GetImportantSpells(player_class)
 end
@@ -453,7 +454,7 @@ local function RaidLayout(self, unit)
 end
 -- #############################################################################
 -- default config ##############################################################
-local default_config = {
+default_config = {
     texture     = kui.m.t.bar,
     font        = kui.m.f.francois,
     font_size   = 10,
@@ -472,34 +473,6 @@ local default_config = {
     party = true,
     debug = false,
 }
--- TODO config hooks
-local config_hooks = {}
-function config_hooks.texture(frame,value)
-    frame.Health:SetStatusBarTexture(value)
-end
-function config_hooks.font(frame,value)
-    frame.name:SetFlag(1,value)
-end
--- etc..
-function addon:ConfigChanged(profile,path)
-    -- path resolves like:
-    -- path = { 'table1', 'table2', 'setting_name' }
-    -- config = { table1 = { table2 = { setting_name = nil } } }
-    if not gsv[profile] then return end
-    if not gsv[profile][path[1]] then return end
-
-    local new_value = gsv[profile][path[1]]
-    local hook = config_hooks[path[1]]
-
-    local_config[path[1]] = new_value
-
-    if hook then
-        for i,f in pairs(addon.frames) do
-            -- iterate frames
-            hook(frame,new_value)
-        end
-    end
-end
 -- #############################################################################
 -- events ######################################################################
 function addon:ADDON_LOADED(loaded_addon)
@@ -518,52 +491,9 @@ function addon:ADDON_LOADED(loaded_addon)
         auras_priority_debuff = 25771 -- forbearance
     end
 
-    -- initialise saved variables
-    if not KuiRaidFramesCharacterSaved then
-        KuiRaidFramesCharacterSaved = {}
-    end
-    if not KuiRaidFramesSaved then
-        KuiRaidFramesSaved = {}
-    end
-    if not KuiRaidFramesSaved.profiles then
-        KuiRaidFramesSaved.profiles = {}
-    end
-
-    local csv = KuiRaidFramesCharacterSaved
-    local gsv = KuiRaidFramesSaved
-    local local_config = {}
-
-    -- get profile
-    if not csv.profile then
-        csv.profile = 'default'
-    end
-
-    if not gsv.profiles[csv.profile] then
-        gsv.profiles[csv.profile] = {}
-    end
-
-    local profile = gsv.profiles[csv.profile]
-    KRF_P = profile -- for easier configuring
-
-    for k,v in pairs(default_config) do
-        -- apply default config
-        local_config[k] = v
-    end
-
-    for k,v in pairs(profile) do
-        -- apply saved variables from profile
-        local_config[k] = v
-
-        if default_config[k] and v == default_config[k] then
-            -- unset varibles which equal the default setting
-            profile[k] = nil
-        end
-    end
-
-    -- TODO config UIs update the global variables -
-    -- so then at some point a function needs to update this local config table
-    -- from the global variable when configuration is changed
-    config = local_config
+    -- initialise config
+    addon.config = kuiconfig:Initialise(addon,'KuiRaidFrames',default_config)
+    config = addon.config:GetConfig()
 end
 addon:SetScript('OnEvent', function(self,event,...)
     self[event](self,...)
