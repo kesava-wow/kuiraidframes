@@ -230,6 +230,7 @@ function addon:SpawnHeader(name, init_func_spec, size)
     end
 
     local header = ouf:SpawnHeader(name, nil, header_visibility,
+        'showPlayer', true,
         'showRaid', true,
         'groupBy', 'ASSIGNEDROLE',
         'groupingOrder', 'TANK,HEALER,DAMAGER,NONE',
@@ -439,13 +440,19 @@ local function RaidLayout(self, unit)
             end
         end
         debuffs.sort = function(a,b)
-            -- we always want boss debuffs before priority debuffs
-            return b.spellid == priority_debuff
+            if a.spellid == priority_debuff and not b.spellid == priority_debuff then
+                return false
+            elseif b.spellid == priority_debuff and not a.spellid == priority_debuff then
+                return true
+            else
+                -- either both or neither are priority_debuff
+                return (a.spellid or 0) < (b.spellid or 0)
+            end
         end
 
         local dispel = {
             filter = 'HARMFUL RAID',
-            points = { 'BOTTOMRIGHT', 'RIGHT', 'LEFT' },
+            point = { 'BOTTOMRIGHT', 'RIGHT', 'LEFT' },
             max = 3
         }
 
