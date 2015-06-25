@@ -440,9 +440,11 @@ local function RaidLayout(self, unit)
             end
         end
         debuffs.sort = function(a,b)
-            if a.spellid == priority_debuff and not b.spellid == priority_debuff then
-                return false
-            elseif b.spellid == priority_debuff and not a.spellid == priority_debuff then
+            if not a.spellid and not b.spellid then
+                return
+            elseif a.spellid == auras_priority_debuff and b.spellid ~= auras_priority_debuff then
+                return
+            elseif b.spellid == auras_priority_debuff and a.spellid ~= auras_priority_debuff then
                 return true
             else
                 -- either both or neither are priority_debuff
