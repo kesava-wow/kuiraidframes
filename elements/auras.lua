@@ -169,27 +169,34 @@ local function AuraFrame_GetAuras(self)
     end
 end
 
+-- aura frame metatable
+local aura_meta = {
+    size = 8,
+    x_spacing = 0,
+    y_spacing = 0,
+    x_offset = 0,
+    y_offset = 0,
+
+    Update = AuraFrame_Update,
+    GetAuras = AuraFrame_GetAuras,
+    GetButton = AuraFrame_GetButton,
+    DisplayButton = AuraFrame_DisplayButton,
+    HideButton = AuraFrame_HideButton,
+    ArrangeButtons = AuraFrame_ArrangeButtons
+}
+aura_meta.__index = aura_meta
+
 local function CreateAuraFrame(frame, filter, point)
-    return {
-        frame = frame,
-        buttons = {},
-        spellids = {},
-        filter = filter,
+    local auraframe = {}
+    setmetatable(auraframe, aura_meta)
 
-        point = point,
-        size = 8,
-        x_spacing = 0,
-        y_spacing = 0,
-        x_offset = 0,
-        y_offset = 0,
+    auraframe.frame = frame
+    auraframe.filter = filter
+    auraframe.point = point
+    auraframe.buttons = {}
+    auraframe.spellids = {}
 
-        Update = AuraFrame_Update,
-        GetAuras = AuraFrame_GetAuras,
-        GetButton = AuraFrame_GetButton,
-        DisplayButton = AuraFrame_DisplayButton,
-        HideButton = AuraFrame_HideButton,
-        ArrangeButtons = AuraFrame_ArrangeButtons
-    }
+    return auraframe
 end
 -- #############################################################################
 -- ouf functions ###############################################################
