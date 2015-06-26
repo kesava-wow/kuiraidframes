@@ -38,17 +38,16 @@ ouf.Tags.Methods['kuiraid:status'] = function(u,r)
     local dead = (UnitIsDead(u) and 'dead') or (UnitIsGhost(u) and 'ghost')
     if dead then return dead end
 
-    if not UnitIsFriend('player',u) then
-		local m = UnitHealthMax(u)
-        local c = UnitHealth(u)
-        if c == m or c == 0 or m == 0 then return end
-        return string.format('%.1f', UnitHealth(u) / m * 100)..'%'
+    local m = UnitHealthMax(u)
+    local c = UnitHealth(u)
+
+    if c == m or c == 0 or m == 0 then
+        return
+    elseif UnitIsFriend('player',u) then
+        return '-'..kui.num(c-m)
+    else
+        return string.format('%.1f', c / m * 100)..'%'
     end
-
-    local hp = ouf.Tags.Methods['missinghp'](u)
-    hp = hp and '-'..kui.num(hp)
-
-    return hp
 end
 ouf.Tags.Events['kuiraid:status'] = 'UNIT_MAXHEALTH UNIT_HEALTH_FREQUENT UNIT_CONNECTION'
 -- #############################################################################
