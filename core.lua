@@ -44,7 +44,7 @@ ouf.Tags.Methods['kuiraid:status'] = function(u,r)
     if c == m or c == 0 or m == 0 then
         return
     elseif UnitIsFriend('player',u) then
-        return '-'..kui.num(c-m)
+        return '-'..kui.num(m-c)
     else
         return string.format('%.1f', c / m * 100)..'%'
     end
@@ -76,7 +76,7 @@ function addon.CreateFontString(parent, flags)
 
     return fs
 end
-function addon.CreateStatusBar(parent, parent_frame, invert)
+function addon.CreateStatusBar(parent,parent_frame,invert)
     parent_frame = parent_frame or parent
 
     local sb = CreateFrame('StatusBar', nil, parent_frame)
