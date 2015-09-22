@@ -31,9 +31,11 @@ local button_UpdateCooldown = function(self,duration,expiration)
     if expiration and expiration > 0 then
         self.expiration = expiration
         self.cd:SetCooldown(expiration - duration, duration)
+        self.cd:Show()
     else
         self.expiration = nil
         self.cd:SetCooldown(0,0)
+        self.cd:Hide()
     end
 end
 local button_SetTexture = function(self,texture)
