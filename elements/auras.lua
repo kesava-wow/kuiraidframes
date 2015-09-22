@@ -7,6 +7,12 @@ local ouf = oUF or oUFKuiEmbed
 local UnitIsFriend = UnitIsFriend
 local kui = LibStub('Kui-1.0')
 
+-- row growth lookup table
+local row_growth_points = {
+    UP = {'BOTTOM','TOP'},
+    DOWN = {'TOP','BOTTOM'}
+}
+
 -- sorts buttons by time remaining ( shorter > longer > timeless )
 local time_sort = function(a,b)
     if not a.index and not b.index then
@@ -56,7 +62,7 @@ end
 local function AuraFrame_ArrangeButtons(self)
     table.sort(self.buttons, self.sort and self.sort or time_sort)
 
-    local prev
+    local prev,prev_row
     self.visible = 0
 
     -- set positions and show in-use buttons
@@ -67,9 +73,26 @@ local function AuraFrame_ArrangeButtons(self)
                 button:ClearAllPoints()
 
                 if not prev then
+                    -- first button
                     button:SetPoint(self.point[1], self.x_offset, self.y_offset)
+                    prev_row = button
                 else
-                    button:SetPoint(self.point[2], prev, self.point[3], self.x_spacing, self.y_spacing)
+                    if self.rows and self.rows > 1 and
+                       (self.visible - 1) % self.num_per_row == 0
+                    then
+                        -- start of row
+                        button:SetPoint(
+                            self.row_point[1], prev_row, self.row_point[2],
+                            0, self.y_spacing
+                        )
+                        prev_row = button
+                    else
+                        -- subsequent button in a row
+                        button:SetPoint(
+                            self.point[2], prev, self.point[3],
+                            self.x_spacing, 0
+                        )
+                    end
                 end
 
                 prev = button
@@ -268,6 +291,20 @@ local function enable(self,unit)
 
         for k,v in pairs(frame_def) do
             new_frame[k] = v
+        end
+
+        new_frame.max = new_frame.max or 40
+
+        if new_frame.rows then
+            if not new_frame.num_per_row then
+                new_frame.num_per_row = floor(new_frame.max / new_frame.rows)
+            end
+
+            if not new_frame.row_growth then
+                new_frame.row_growth = 'UP'
+            end
+
+            new_frame.row_point = row_growth_points[new_frame.row_growth]
         end
 
         self.KuiAuras.frames[i] = new_frame
