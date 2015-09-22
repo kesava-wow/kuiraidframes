@@ -5,6 +5,7 @@
 --]]
 local ouf = oUF or oUFKuiEmbed
 local UnitIsFriend = UnitIsFriend
+local kui = LibStub('Kui-1.0')
 
 -- sorts buttons by time remaining ( shorter > longer > timeless )
 local time_sort = function(a,b)
@@ -27,6 +28,16 @@ local button_UpdateCooldown = function(self,duration,expiration)
 end
 local button_SetTexture = function(self,texture)
     self.icon:SetTexture(texture)
+end
+local button_UpdateTooltip = function(self)
+    GameTooltip:SetUnitAura(self.parent.frame.unit, self.index, self.parent.filter)
+end
+local button_OnEnter = function(self)
+    GameTooltip:SetOwner(self,'ANCHOR_TOPRIGHT')
+    self:UpdateTooltip()
+end
+local button_OnLeave = function()
+    GameTooltip:Hide()
 end
 -- #############################################################################
 -- aura frame functions ########################################################
@@ -76,9 +87,22 @@ local function AuraFrame_GetButton(self)
     local button = CreateFrame('Frame',nil,self.parent and self.parent or self.frame.Health)
     button:SetSize(self.size, self.size)
 
-    local icon = button:CreateTexture(nil, 'ARTWORK')
+    local icon = button:CreateTexture(nil, 'ARTWORK', nil, 1)
     icon:SetTexCoord(.1,.9,.1,.9)
-    icon:SetAllPoints(button)
+
+    if self.bg then
+        local bg = button:CreateTexture(nil, 'ARTWORK', nil, 0)
+        bg:SetTexture(kui.m.t.solid)
+        bg:SetVertexColor(0,0,0,1)
+
+        bg:SetAllPoints(button)
+        icon:SetPoint('TOPLEFT',bg,'TOPLEFT',1,-1)
+        icon:SetPoint('BOTTOMRIGHT',bg,'BOTTOMRIGHT',-1,1)
+
+        button.bg = bg
+    else
+        icon:SetAllPoints(button)
+    end
 
     local cd = CreateFrame('Cooldown', nil, button, 'CooldownFrameTemplate')
     cd:SetAllPoints(button)
@@ -86,22 +110,31 @@ local function AuraFrame_GetButton(self)
     cd:SetReverse(true)
     cd:SetHideCountdownNumbers(true)
 
+    button.parent = self
     button.icon = icon
     button.cd = cd
 
     button.UpdateCooldown = button_UpdateCooldown
     button.SetTexture = button_SetTexture
+    button.UpdateTooltip = button_UpdateTooltip
+
+    if self.mouse then
+        button:EnableMouse(true)
+        button:SetScript('OnEnter', button_OnEnter)
+        button:SetScript('OnLeave', button_OnLeave)
+    end
 
     tinsert(self.buttons, button)
     return button
 end
 
-local function AuraFrame_DisplayButton(self,name,icon,spellid,count,duration,expiration)
+local function AuraFrame_DisplayButton(self,name,icon,spellid,count,duration,expiration,index)
     local button = self:GetButton(spellid)
 
     button:SetTexture(icon)
     button.used = true
     button.spellid = spellid
+    button.index = index
 
     button:UpdateCooldown(duration,expiration)
 
@@ -120,6 +153,7 @@ local function AuraFrame_HideButton(self,button)
     button.duration = nil
     button.expiration = nil
     button.spellid = nil
+    button.index = nil
 
     button:Hide()
 end
@@ -137,7 +171,7 @@ local function AuraFrame_Update(self)
                 self:HideButton(button)
             end
 
-            -- set used to nil until they are recalled next update
+            -- set used to nil until they are called again next update
             button.used = nil
         end
 
@@ -164,7 +198,7 @@ local function AuraFrame_GetAuras(self)
         if  not self.callback or (self.callback and
             self.callback(name,duration,expiration,spellid,isBoss))
         then
-            self:DisplayButton(name,icon,spellid,count,duration,expiration)
+            self:DisplayButton(name,icon,spellid,count,duration,expiration,i)
         end
     end
 end
