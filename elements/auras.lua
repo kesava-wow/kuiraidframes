@@ -24,6 +24,7 @@ local button_UpdateCooldown = function(self,duration,expiration)
         self.cd:SetCooldown(expiration - duration, duration)
     else
         self.expiration = nil
+        self.cd:SetCooldown(0,0)
     end
 end
 local button_SetTexture = function(self,texture)
@@ -146,6 +147,7 @@ local function AuraFrame_DisplayButton(self,name,icon,spellid,count,duration,exp
 end
 
 local function AuraFrame_HideButton(self,button)
+    -- hide a button and nil its data
     if button.spellid then
         self.spellids[button.spellid] = nil
     end
