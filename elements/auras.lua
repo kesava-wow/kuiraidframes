@@ -73,7 +73,7 @@ local function AuraFrame_GetButton(self)
     end
 
     -- create new button
-    local button = CreateFrame('Frame',nil,self.frame.Health)
+    local button = CreateFrame('Frame',nil,self.parent and self.parent or self.frame.Health)
     button:SetSize(self.size, self.size)
 
     local icon = button:CreateTexture(nil, 'ARTWORK')

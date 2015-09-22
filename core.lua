@@ -469,6 +469,7 @@ default_config = {
     font_flags  = 'THINOUTLINE',
     font_shadow = true,
 
+    -- my dps position: 741,-820
     x_position = 1100,
     y_position = -250,
 
