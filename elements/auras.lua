@@ -19,7 +19,7 @@ end
 -- #############################################################################
 -- button functions ############################################################
 local button_UpdateCooldown = function(self,duration,expiration)
-    if expiration > 0 then
+    if expiration and expiration > 0 then
         self.expiration = expiration
         self.cd:SetCooldown(expiration - duration, duration)
     else
@@ -151,6 +151,8 @@ local function AuraFrame_HideButton(self,button)
     if button.spellid then
         self.spellids[button.spellid] = nil
     end
+
+    button:UpdateCooldown()
 
     button.duration = nil
     button.expiration = nil
