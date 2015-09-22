@@ -9,13 +9,22 @@ local kui = LibStub('Kui-1.0')
 
 -- sorts buttons by time remaining ( shorter > longer > timeless )
 local time_sort = function(a,b)
+    if not a.index and not b.index then
+        return
+    elseif a.index and not b.index then
+        return true
+    elseif not a.index and b.index then
+        return
+    end
+
     if a.expiration and b.expiration then
         return a.expiration < b.expiration
+    elseif not a.expiration and not b.expiration then
+        return a.index < b.index
     else
         return a.expiration and not b.expiration
     end
 end
-
 -- #############################################################################
 -- button functions ############################################################
 local button_UpdateCooldown = function(self,duration,expiration)
@@ -78,7 +87,7 @@ local function AuraFrame_GetButton(self)
     end
 
     -- use unused button
-    for _,button in pairs(self.buttons) do
+    for _,button in ipairs(self.buttons) do
         if not button:IsShown() and not button.spellid then
             return button
         end
