@@ -13,8 +13,26 @@ local row_growth_points = {
     DOWN = {'TOP','BOTTOM'}
 }
 
--- sorts buttons by time remaining ( shorter > longer > timeless )
+local index_sort = function(a,b)
+    -- sort by aura index
+    return a.index < b.index
+end
 local time_sort = function(a,b)
+    -- sort by time remaining ( shorter > longer > timeless )
+    if a.expiration and b.expiration then
+        if a.expiration == b.expiration then
+            return index_sort(a,b)
+        else
+            return a.expiration < b.expiration
+        end
+    elseif not a.expiration and not b.expiration then
+        return index_sort(a,b)
+    else
+        return a.expiration and not b.expiration
+    end
+end
+local auras_sort = function(a,b)
+    -- sort template; sort unused buttons
     if not a.index and not b.index then
         return
     elseif a.index and not b.index then
@@ -23,14 +41,13 @@ local time_sort = function(a,b)
         return
     end
 
-    if a.expiration and b.expiration then
-        return a.expiration < b.expiration
-    elseif not a.expiration and not b.expiration then
-        return a.index < b.index
-    else
-        return a.expiration and not b.expiration
-    end
+    -- and call the frame's desired sort function
+    return a.parent.sort(a,b)
 end
+local sort_methods = {
+    time = time_sort,
+    index = index_sort,
+}
 -- #############################################################################
 -- button functions ############################################################
 local button_UpdateCooldown = function(self,duration,expiration)
@@ -60,7 +77,7 @@ end
 -- #############################################################################
 -- aura frame functions ########################################################
 local function AuraFrame_ArrangeButtons(self)
-    table.sort(self.buttons, self.sort and self.sort or time_sort)
+    table.sort(self.buttons, auras_sort)
 
     local prev,prev_row
     self.visible = 0
@@ -305,6 +322,16 @@ local function enable(self,unit)
             end
 
             new_frame.row_point = row_growth_points[new_frame.row_growth]
+        end
+
+        if new_frame.sort then
+            if type(new_frame.sort) == 'string' and
+               sort_methods[new_frame.sort]
+            then
+                new_frame.sort = sort_methods[new_frame.sort]
+            elseif type(new_frame.sort) ~= 'function' then
+                new_frame.sort = time_sort
+            end
         end
 
         self.KuiAuras.frames[i] = new_frame
