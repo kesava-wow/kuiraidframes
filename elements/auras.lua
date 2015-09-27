@@ -330,8 +330,10 @@ local function enable(self,unit)
             then
                 new_frame.sort = sort_methods[new_frame.sort]
             elseif type(new_frame.sort) ~= 'function' then
-                new_frame.sort = time_sort
+                new_frame.sort = index_sort
             end
+        else
+            new_frame.sort = index_sort
         end
 
         self.KuiAuras.frames[i] = new_frame
