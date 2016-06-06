@@ -56,12 +56,12 @@
    Health:SetPoint('TOP')
    Health:SetPoint('LEFT')
    Health:SetPoint('RIGHT')
-   
+
    -- Add a background
    local Background = Health:CreateTexture(nil, 'BACKGROUND')
    Background:SetAllPoints(Health)
    Background:SetTexture(1, 1, 1, .5)
-   
+
    -- Options
    Health.frequentUpdates = true
    Health.colorTapping = true
@@ -69,10 +69,10 @@
    Health.colorClass = true
    Health.colorReaction = true
    Health.colorHealth = true
-   
+
    -- Make the background darker.
    Background.multiplier = .5
-   
+
    -- Register it with oUF
    self.Health = Health
    self.Health.bg = Background
@@ -108,8 +108,7 @@ local Update = function(self, event, unit)
 
 	local r, g, b, t
 	if(health.colorTapping and not UnitPlayerControlled(unit) and
-		UnitIsTapped(unit) and not UnitIsTappedByPlayer(unit) and not
-		UnitIsTappedByAllThreatList(unit)) then
+        UnitIsTapDenied(unit)) then
 		t = self.colors.tapped
 	elseif(health.colorDisconnected and not UnitIsConnected(unit)) then
 		t = self.colors.disconnected
