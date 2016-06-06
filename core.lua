@@ -236,10 +236,10 @@ function addon:SpawnHeader(name, init_func_spec, size)
         'sortMethod', 'INDEX',
         'sortDir', 'ASC',
         'oUF-initialConfigFunction', (init_func):format(size[1], size[2]),
-        'point', 'TOP',
+        'point', config.growth_anchor,
         'xOffset', config.x_offset,
         'yOffset', config.y_offset,
-        'columnAnchorPoint', 'LEFT',
+        'columnAnchorPoint', config.column_anchor,
         'unitsPerColumn', 5,
         'columnSpacing', config.spacing,
         'maxColumns', 8
@@ -261,6 +261,7 @@ function addon:SpawnTanks()
     header:SetAttribute('roleFilter', 'MAINTANK,MAINASSIST,TANK')
     header:SetAttribute('maxColumns', 1)
 
+    -- TODO these points need to be changed depending on column_anchor and growth_anchor
     header:SetPoint('TOPLEFT', UIParent, 'TOPLEFT', config.x_position, config.y_position)
 end
 
@@ -472,6 +473,9 @@ default_config = {
     -- my dps position: 741,-820
     x_position = 1100,
     y_position = -250,
+
+    column_anchor = 'LEFT',
+    growth_anchor = 'TOP',
 
     x_offset = 1,
     y_offset = -1,
