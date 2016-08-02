@@ -36,9 +36,11 @@ local function update(self,event,unit)
     self.KuiAbsorb.bar:SetMinMaxValues(0,maxHealth)
     self.KuiAbsorb.bar:SetValue(absorbs)
 
-    -- re-set the texture after SetValue so that it tiles correctly
-    -- (a blizzard thing)
-    self.KuiAbsorb.bar:SetStatusBarTexture(self.KuiAbsorb.texture)
+    if self.KuiAbsorb.tile then
+        -- re-set the texture after SetValue so that it tiles correctly
+        -- (a blizzard thing)
+        self.KuiAbsorb.bar:SetStatusBarTexture(self.KuiAbsorb.texture)
+    end
 end
 
 local function enable(self,unit)
@@ -58,9 +60,13 @@ local function enable(self,unit)
     do
         local t = ka.bar:GetStatusBarTexture()
         if t then
-            t:SetDrawLayer(unpack(ka.drawLayer))
-            t:SetHorizTile(true)
-            t:SetVertTile(true)
+            if ka.drawLayer then
+                t:SetDrawLayer(unpack(ka.drawLayer))
+            end
+            if ka.tile then
+                t:SetHorizTile(true)
+                t:SetVertTile(true)
+            end
         end
     end
 

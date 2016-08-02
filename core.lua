@@ -318,6 +318,7 @@ local function RaidLayout(self, unit)
 
     self.KuiAbsorb = {
         texture = 'Interface\\AddOns\\Kui_RaidFrames\\media\\stippled-bar',
+        tile = true,
         drawLayer = { 'BACKGROUND', 4 },
         colour = { .3, .7, 1 },
         alpha = .5
