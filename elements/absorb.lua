@@ -36,7 +36,7 @@ end
 
 local function enable(self,unit)
     if not self.KuiAbsorb then return end
-    if self.HealPrediction.absorbBar then return end
+    if self.HealPrediction and self.HealPrediction.absorbBar then return end
 
     local ka = self.KuiAbsorb
 
