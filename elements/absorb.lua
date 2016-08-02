@@ -14,8 +14,11 @@ local function update(self,event,unit)
 
     if absorbs <= 0 then
         self.KuiAbsorb.bar:SetValue(0)
+        self.KuiAbsorb.bar:Hide()
         self.KuiAbsorb.spark:Hide()
         return
+    else
+        self.KuiAbsorb.bar:Show()
     end
 
     local maxHealth = UnitHealthMax(unit)
@@ -32,6 +35,10 @@ local function update(self,event,unit)
 
     self.KuiAbsorb.bar:SetMinMaxValues(0,maxHealth)
     self.KuiAbsorb.bar:SetValue(absorbs)
+
+    -- re-set the texture after SetValue so that it tiles correctly
+    -- (a blizzard thing)
+    self.KuiAbsorb.bar:SetStatusBarTexture(self.KuiAbsorb.texture)
 end
 
 local function enable(self,unit)
@@ -42,12 +49,20 @@ local function enable(self,unit)
 
     ka.bar = CreateFrame('StatusBar', nil, self.Health)
     ka.bar:SetStatusBarTexture(ka.texture)
-    ka.bar:GetStatusBarTexture():SetDrawLayer(unpack(ka.drawLayer))
     ka.bar:SetStatusBarColor(unpack(ka.colour))
     ka.bar:SetAlpha(ka.alpha)
     ka.bar:SetAllPoints(self.Health)
     ka.bar:SetMinMaxValues(0,1)
     ka.bar:SetValue(0)
+
+    do
+        local t = ka.bar:GetStatusBarTexture()
+        if t then
+            t:SetDrawLayer(unpack(ka.drawLayer))
+            t:SetHorizTile(true)
+            t:SetVertTile(true)
+        end
+    end
 
     ka.spark = self.Health:CreateTexture(nil,'ARTWORK')
     ka.spark:SetTexture('Interface\\AddOns\\Kui_Media\\t\\spark')
