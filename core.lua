@@ -314,7 +314,7 @@ local function RaidLayout(self, unit)
     self.Health.colorReaction = true
     self.Health.colorTapping = true
     self.Health.colorClass = true
-    self.Health.Smooth = true
+    self.Health.Cutaway = true
 
     self.KuiAbsorb = {
         texture = 'Interface\\AddOns\\Kui_RaidFrames\\media\\stippled-bar',
