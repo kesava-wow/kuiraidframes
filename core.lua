@@ -17,11 +17,6 @@ function whitelist.WhitelistChanged()
     whitelist.list = spelllist.GetImportantSpells(player_class)
 end
 
-local sizes = {
-    default = { 55,35 },
-    target = { 40,35 }
-}
-
 local INIT_MTT = 1
 
 -- #############################################################################
@@ -204,7 +199,7 @@ end
 -- spawn functions #############################################################
 function addon:SpawnHeader(name, init_func_spec, size)
     local init_func
-    size = size or sizes.default
+    size = size or { config.default_width, config.default_height }
 
     if init_func_spec == INIT_MTT then
         init_func = [[
@@ -266,7 +261,8 @@ function addon:SpawnTanks()
 end
 
 function addon:SpawnTankTargets()
-    local header = self:SpawnHeader('oUF_Kui_Raid_Tank_Targets', INIT_MTT, sizes.target)
+    local header = self:SpawnHeader('oUF_Kui_Raid_Tank_Targets', INIT_MTT,
+        { config.target_width, config.target_height })
 
     header:SetAttribute('roleFilter', 'MAINTANK,MAINASSIST,TANK')
     header:SetAttribute('maxColumns', 1)
@@ -412,7 +408,8 @@ local function RaidLayout(self, unit)
         local buffs = {
             filter = 'HELPFUL PLAYER',
             point = { 'TOPLEFT', 'LEFT', 'RIGHT' },
-            max = 5,
+            size = config.buff_size,
+            max = 5
         }
         buffs.callback = function(name,duration,expiration,spellid)
             if whitelist.list[spellid] and
@@ -425,7 +422,7 @@ local function RaidLayout(self, unit)
         local debuffs = {
             filter = 'HARMFUL',
             point = { 'BOTTOMLEFT', 'BOTTOMLEFT', 'BOTTOMRIGHT' },
-            size = 12,
+            size = config.debuff_size,
             max = 3
         }
         debuffs.callback = function(name,duration,expiration,spellid,isBoss)
@@ -456,6 +453,7 @@ local function RaidLayout(self, unit)
         local dispel = {
             filter = 'HARMFUL RAID',
             point = { 'BOTTOMRIGHT', 'RIGHT', 'LEFT' },
+            size = config.dispel_size,
             max = 3
         }
 
@@ -472,8 +470,8 @@ default_config = {
     font_shadow = true,
 
     -- my dps position: 741,-820
-    x_position = 1100,
-    y_position = -250,
+    x_position = 1600,
+    y_position = -400,
 
     column_anchor = 'LEFT',
     growth_anchor = 'TOP',
@@ -486,6 +484,15 @@ default_config = {
 
     party = true,
     debug = false,
+
+    default_width = 55,
+    default_height = 35,
+    target_width = 40,
+    target_height = 35,
+
+    buff_size = 8,
+    debuff_size = 12,
+    dispel_size = 8
 }
 -- #############################################################################
 -- events ######################################################################
