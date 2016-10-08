@@ -464,7 +464,7 @@ end
 -- default config ##############################################################
 default_config = {
     texture     = kui.m.t.bar,
-    font        = kui.m.f.francois,
+    font        = kui.m.f.roboto,
     font_size   = 10,
     font_flags  = 'THINOUTLINE',
     font_shadow = true,
