@@ -426,7 +426,7 @@ local function RaidLayout(self, unit)
             max = 3
         }
         debuffs.callback = function(name,duration,expiration,spellid,isBoss)
-            return isBoss or (spellid == auras_priority_debuff)
+            return isBoss or (spellid == auras_priority_debuff) or (spellid == 233263)
         end
         debuffs.PreShowButton = function(self,button)
             if button.spellid == auras_priority_debuff then
