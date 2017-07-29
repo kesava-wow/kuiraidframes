@@ -2,5 +2,5 @@
 	<Script file="LibStub/LibStub.lua"/>
 	<Script file="Kui.lua"/>
 	<Script file="KuiConfig.lua"/>
-    <Script file="KuiSpellList.lua"/>
+    <Script file="KuiSpellList/KuiSpellList.lua"/>
 </Ui>
