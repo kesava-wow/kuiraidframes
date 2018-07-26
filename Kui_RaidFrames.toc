@@ -1,12 +1,11 @@
-## Interface: 70200
+## Interface: 80000
 ## Author: Kesava
 ## Title: Kui |cff9966ffRaidFrames|r
-## OptionalDeps: oUF, oUF_Smooth
+## OptionalDeps: oUF_Smooth
+## RequiredDeps: oUF
 ## SavedVariables: KuiRaidFramesSaved
 ## SavedVariablesPerCharacter: KuiRaidFramesCharacterSaved
-## X-oUF: oUFKuiEmbed
 
-oUF\oUF.xml
 lib\embeds.xml
 
 elements\absorb.lua
