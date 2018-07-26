@@ -1,4 +1,3 @@
-
 local folder,ns=...
 local kui = LibStub('Kui-1.0')
 local ouf = oUF or oUFKuiEmbed
