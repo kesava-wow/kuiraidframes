@@ -149,8 +149,8 @@ local function KuiTargetHighlightHook(self,show)
         self.overlay:SetBackdropBorderColor(0,0,0,0)
     end
 end
-local function RangeHook(self,state)
-    if state == 'inside' then
+local function RangeResult(self,in_range)
+    if in_range then
         self.Health:SetAlpha(self.Range.insideAlpha)
         self.name:SetTextColor(1,1,1,1)
         self.status:SetTextColor(.8,.8,.8,1)
@@ -158,6 +158,18 @@ local function RangeHook(self,state)
         self.Health:SetAlpha(self.Range.outsideAlpha)
         self.name:SetTextColor(.5,.5,.5,.7)
         self.status:SetTextColor(.5,.5,.5,.7)
+    end
+end
+local function RangeHook(self)
+    if UnitIsConnected(self.unit) then
+        local inRange,checkedRange = UnitInRange(self.unit)
+        if checkedRange and not inRange then
+            RangeResult(self)
+        else
+            RangeResult(self,true)
+        end
+    else
+        RangeResult(self,true)
     end
 end
 local function ThreatHook(self,event,unit)
