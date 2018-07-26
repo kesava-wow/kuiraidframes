@@ -247,7 +247,7 @@ end
 
 local function AuraFrame_GetAuras(self)
     for i=1,40 do
-        local name,_,icon,count,_,duration,expiration,_,_,_,spellid,_,isBoss = UnitAura(self.unit, i, self.filter)
+        local name,icon,count,_,duration,expiration,_,_,_,spellid,_,isBoss = UnitAura(self.unit, i, self.filter)
         if not name then break end
 
         if  not self.callback or (self.callback and
